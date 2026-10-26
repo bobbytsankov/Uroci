@@ -1,0 +1,1344 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Кегли и топка в Blender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: учебна маса. Вляво кратки редове „клавиш → действие“, вдясно живата картина. Цветовете на осите X/Y/Z и оранжевото на избора са от самия Blender. */
+:root{
+  --bg:#eceef1; --surface:#f8f9fb; --sunk:#e2e5ea; --ink:#16181c; --muted:#596069; --line:#cdd2d9;
+  --key:#d26a06; --keysoft:#f6dcc0; --x:#cf3446; --y:#3f8f12; --z:#2a66cc; --sel:#e8a020;
+  --display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17191d; --surface:#202328; --sunk:#2a2e34; --ink:#e6e8eb; --muted:#9aa1ab; --line:#363a42;
+  --key:#f39a2e; --keysoft:#4a3420; --x:#ff6170; --y:#8fd14f; --z:#63a1ff; --sel:#f4b844; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17191d; --surface:#202328; --sunk:#2a2e34; --ink:#e6e8eb; --muted:#9aa1ab; --line:#363a42;
+  --key:#f39a2e; --keysoft:#4a3420; --x:#ff6170; --y:#8fd14f; --z:#63a1ff; --sel:#f4b844; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:0 72px}
+a{color:var(--key)}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--key);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.2rem,5.5vw,3.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.4rem,2.8vw,1.9rem);font-weight:700}
+h3{font-size:1.12rem;font-weight:500}
+p{margin:0}
+kbd{font-family:var(--mono);font-size:.8em;font-weight:600;background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:.08em .45em;white-space:nowrap;color:var(--ink)}
+code{font-family:var(--mono);font-size:.88em}
+.wrap{max-width:1260px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:36px;align-items:center;padding-block:44px 28px}
+.hero .lead{font-size:1.15rem;color:var(--muted);max-width:40ch;margin-top:18px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:20px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.hero .meta b{color:var(--ink);font-weight:600}
+.film{margin:0}
+.film video{width:100%;max-width:100%;aspect-ratio:16/9;display:block;border-radius:8px;background:var(--sunk)}
+.parts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:4px 0 48px}
+.parts a{display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--ink);min-width:0}
+.parts a:hover{border-color:var(--key)}
+.parts b{font-family:var(--display);font-size:1.3rem;color:var(--key);line-height:1}
+.parts span{font-weight:600;font-size:.95rem}
+.parts small{color:var(--muted);font-size:.8rem;line-height:1.35}
+
+.layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:40px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:.88rem;display:flex;flex-direction:column;gap:1px;max-height:calc(100vh - 32px);overflow:auto}
+nav.toc a{color:var(--muted);text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover,nav.toc a.on{color:var(--ink);border-left-color:var(--key)}
+nav.toc .grp{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+section>header{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+section>header p{color:var(--muted);max-width:60ch}
+
+.part{display:flex;align-items:center;gap:16px;margin:56px 0 4px;padding-top:20px;border-top:2px solid var(--ink)}
+.part .letter{font-family:var(--display);font-weight:700;font-size:2.4rem;color:var(--key);line-height:1}
+.part h2{font-size:1.5rem}
+.part p{color:var(--muted);font-size:.95rem;margin-left:auto;max-width:34ch;text-align:right}
+
+.step{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:32px;padding:30px 0;border-bottom:1px solid var(--line);align-items:start}
+.step .txt{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sh{display:flex;align-items:baseline;gap:12px}
+.sh .code{font-family:var(--mono);font-weight:600;font-size:.85rem;color:var(--surface);background:var(--ink);border-radius:4px;padding:2px 7px}
+.sh h3{font-size:1.3rem;font-weight:700}
+.goal{font-size:1.02rem;color:var(--muted)}
+ol.do{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+ol.do li{display:grid;grid-template-columns:8.6rem minmax(0,1fr);gap:12px;align-items:baseline;padding:9px 10px 9px 8px;border-bottom:1px solid var(--line);border-left:3px solid transparent;transition:background .25s,border-color .25s}
+ol.do li.on{background:var(--keysoft);border-left-color:var(--key)}
+ol.do .k{display:flex;flex-wrap:wrap;gap:4px;align-items:baseline;font-size:.82rem;color:var(--muted)}
+ol.do .a{font-size:.98rem}
+ol.do .a b{font-weight:600}
+.why{font-size:.92rem;color:var(--muted);padding-left:12px;border-left:2px solid var(--line)}
+.why b,.trap b{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.trap{font-size:.92rem;padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--x) 10%,transparent);border-left:3px solid var(--x)}
+.trap b{color:var(--x)}
+
+.viz{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tabs{display:flex;gap:4px}
+.tabs button{font:inherit;font-family:var(--mono);font-size:.75rem;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.fig canvas{width:100%;max-width:100%;display:block;border-radius:4px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:.8rem;color:var(--muted)}
+.ctl label{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono)}
+.ctl input[type=range]{width:120px;accent-color:var(--key)}
+.ctl output{font-family:var(--mono);color:var(--ink);min-width:3.5ch;font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-family:var(--mono);font-size:.75rem;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 9px;cursor:pointer}
+.btn[aria-pressed=true]{background:var(--key);color:var(--surface);border-color:var(--key)}
+
+/* UI tours on real screenshots — deliberately Blender-dark in both themes */
+.tour{margin:0;border-radius:8px;overflow:hidden;background:#1d1d1d;border:1px solid var(--line);min-width:0}
+.stage{position:relative;overflow:hidden;width:100%;aspect-ratio:16/9}
+.cam{position:absolute;inset:0;transform-origin:0 0;transition:transform .9s cubic-bezier(.5,0,.2,1)}
+.cam img,.cam svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.keycap{position:absolute;left:14px;bottom:14px;display:flex;gap:6px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s}
+.keycap.on{opacity:1;transform:none}
+.keycap kbd{font-size:1rem;background:#f4f4f4;color:#111;border-color:#aaa;box-shadow:0 3px 0 #777;padding:.15em .6em}
+.tbar{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#262626;color:#e6e6e6;font-size:.88rem;min-height:44px}
+.tbar .cap{flex:1;min-width:0}
+.tbar .cnt{font-family:var(--mono);font-size:.72rem;color:#a8a8a8;font-variant-numeric:tabular-nums}
+.tbar button{font:inherit;font-family:var(--mono);font-size:.8rem;background:#3a3a3a;color:#eee;border:1px solid #4a4a4a;border-radius:4px;width:28px;height:26px;cursor:pointer;flex:none}
+.tbar button:hover{background:#4772b3}
+
+.shots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
+.shots figure{margin:0}
+.shots img{width:100%;border-radius:6px;display:block}
+.shots figcaption{font-size:.78rem;color:var(--muted);margin-top:4px}
+
+.tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.tools input{font:inherit;font-size:.9rem;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:0;width:min(320px,100%)}
+.tools .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--sunk)}
+td.k{white-space:nowrap}
+td.m{font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+tr.grp td{background:var(--bg);font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--key);font-weight:600}
+.principles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pr{border-top:3px solid var(--key);background:var(--surface);padding:12px 14px;border-radius:0 0 8px 8px;display:flex;flex-direction:column;gap:6px}
+.pr b{font-family:var(--display);font-weight:500;font-size:.95rem}
+.pr span{font-size:.86rem;color:var(--muted)}
+.pr a{font-family:var(--mono);font-size:.75rem;text-decoration:none}
+.files{font-size:.92rem;display:flex;flex-direction:column;gap:8px}
+.files code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:2px 6px;word-break:break-all}
+
+@media (max-width:980px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.toc{display:none}
+  .step{grid-template-columns:minmax(0,1fr)}
+  .parts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .principles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shots{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .part p{display:none}
+}
+@media (max-width:520px){
+  .parts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  ol.do li{grid-template-columns:minmax(0,1fr);gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div>
+    <div class="eyebrow">III курс · 3D анимация · Blender 5.2</div>
+    <h1>Кегли и топка</h1>
+    <p class="lead">Топка, три кегли с очи и пет секунди анимация. Шест части, всяка с кратки стъпки.</p>
+    <div class="meta"><span>версия <b>Blender 5.2 LTS</b></span><span>анимация <b>24 fps</b></span><span>филм <b>124 кадъра</b></span></div>
+  </div>
+  <figure class="film">
+    <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline controls aria-label="Готовият филм"></video>
+  </figure>
+</header>
+
+<nav class="parts" aria-label="Части на урока">
+  <a href="#pA"><b>A</b><span>Топката</span><small>сфера, дупки, изглаждане</small></a>
+  <a href="#pB"><b>B</b><span>Кеглата</span><small>профил с E·Z·S, очи</small></a>
+  <a href="#pC"><b>C</b><span>Сцена</span><small>камера, йерархия, копия</small></a>
+  <a href="#pD"><b>D</b><span>Цвят</span><small>материал, Base Color, лента</small></a>
+  <a href="#pE"><b>E</b><span>Светлина</span><small>Sun, обектив, фокус</small></a>
+  <a href="#pF"><b>F</b><span>Анимация</span><small>ключове, тайминг, характер</small></a>
+</nav>
+
+<div class="layout">
+<nav class="toc" id="toc">
+  <div class="grp">Начало</div>
+  <a href="#ws">Къде е какво</a>
+  <div class="grp">Стъпки</div>
+  <a href="#pA">A · Топката</a>
+  <a href="#pB">B · Кеглата</a>
+  <a href="#pC">C · Сцена</a>
+  <a href="#pD">D · Цвят</a>
+  <a href="#pE">E · Светлина и камера</a>
+  <a href="#pF">F · Анимация</a>
+  <div class="grp">Справочник</div>
+  <a href="#principles">Принципи</a>
+  <a href="#keys">Клавиши</a>
+  <a href="#terms">Термини</a>
+  <a href="#files">Файлове</a>
+</nav>
+
+<main>
+
+<section id="ws">
+  <header>
+    <div class="eyebrow">Начало</div>
+    <h2>Къде е какво</h2>
+    <p>Прозорецът на Blender 5.2. Обиколката минава през всяка зона; клик върху ред я показва.</p>
+  </header>
+  <div class="step" style="border-bottom:0;padding-top:8px">
+    <div class="txt">
+      <ol class="do" data-tour="map">
+        <li><span class="k">горе</span><span class="a"><b>Работни пространства</b>: Layout, Animation…</span></li>
+        <li><span class="k">хедър</span><span class="a"><b>Режим</b>, меню <b>Add</b>, ориентация, pivot, изглед</span></li>
+        <li><span class="k">вляво</span><span class="a"><b>Инструменти</b></span></li>
+        <li><span class="k">център</span><span class="a"><b>3D Viewport</b>: сцената</span></li>
+        <li><span class="k">горе вдясно</span><span class="a"><b>Outliner</b>: списък на обектите</span></li>
+        <li><span class="k">вдясно</span><span class="a"><b>Properties</b>: свойства на избрания обект</span></li>
+        <li><span class="k">иконите</span><span class="a"><b>Разделите</b> на Properties</span></li>
+        <li><span class="k">долу</span><span class="a"><b>Timeline</b>: кадри и ▶</span></li>
+      </ol>
+      <ol class="do">
+        <li><span class="k">средно копче</span><span class="a">върти погледа</span></li>
+        <li><span class="k"><kbd>Shift</kbd> + средно</span><span class="a">мести погледа</span></li>
+        <li><span class="k">колело</span><span class="a">приближава</span></li>
+        <li><span class="k"><kbd>Numpad .</kbd></span><span class="a">центрира избрания обект</span></li>
+      </ol>
+    </div>
+    <div class="viz"><figure class="tour" data-tour="map"></figure></div>
+  </div>
+</section>
+
+<section id="steps">
+<div class="part" id="pA"><span class="letter">A</span><h2>Топката</h2><p>Сфера с три дупки за пръстите</p></div>
+
+<article class="step" id="A1">
+  <div class="txt">
+    <div class="sh"><span class="code">A1</span><h3>UV сфера</h3></div>
+    <p class="goal">Сфера с гъста мрежа.</p>
+    <ol class="do" data-tour="add">
+      <li><span class="k"><kbd>A</kbd> <kbd>X</kbd></span><span class="a">изтрий всичко</span></li>
+      <li><span class="k"><kbd>Shift</kbd> <kbd>A</kbd></span><span class="a">Mesh ▸ <b>UV Sphere</b></span></li>
+      <li><span class="k">панел долу вляво</span><span class="a">Segments <b>64</b> · Rings <b>32</b></span></li>
+    </ol>
+    <p class="why"><b>Защо</b>Повече лица = материал за дупките. Лица = Segments × Rings.</p>
+    <p class="trap"><b>Капан</b>Панелът изчезва при следващото действие. <kbd>F9</kbd> го връща.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="add"></figure>
+    <figure class="fig" data-w="sphere" hidden>
+      <canvas data-ar="1.4"></canvas>
+      <div class="ctl"><label>Segments <input type="range" id="sp-seg" min="8" max="64" step="2" value="64"><output id="sp-seg-o">64</output></label><label>Rings <input type="range" id="sp-ring" min="4" max="32" step="1" value="32"><output id="sp-ring-o">32</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="A2">
+  <div class="txt">
+    <div class="sh"><span class="code">A2</span><h3>Лица и Inset</h3></div>
+    <p class="goal">Ръб около всяка бъдеща дупка.</p>
+    <ol class="do" data-tour="edit">
+      <li><span class="k"><kbd>Tab</kbd></span><span class="a"><b>Edit Mode</b></span></li>
+      <li><span class="k"><kbd>3</kbd></span><span class="a">режим <b>лица</b></span></li>
+      <li><span class="k">клик · <kbd>Shift</kbd> + клик</span><span class="a">избери 4 лица за първата дупка</span></li>
+      <li><span class="k"><kbd>I</kbd></span><span class="a">мишката навътре: <b>Inset</b>, клик</span></li>
+    </ol>
+    <p class="why"><b>Повтори</b>за другите две дупки.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="edit"></figure>
+    <figure class="fig" data-w="inset" hidden>
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><label>Thickness <input type="range" id="in-th" min="0" max="0.4" step="0.01" value="0.2"><output id="in-th-o">0.20</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="A3">
+  <div class="txt">
+    <div class="sh"><span class="code">A3</span><h3>To Sphere</h3></div>
+    <p class="goal">Квадратът става кръг.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>S</kbd></span><span class="a"><b>To Sphere</b> (или <kbd>F3</kbd> и „to sphere“)</span></li>
+      <li><span class="k">мишка</span><span class="a">дърпай, докато Factor стане <b>1</b></span></li>
+      <li><span class="k">клик</span><span class="a">потвърди</span></li>
+    </ol>
+    <p class="why"><b>Внимание</b>Всяка дупка поотделно. Иначе трите стават един общ кръг.</p>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="tosphere">
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><label>Factor <input type="range" id="ts-f" min="0" max="1" step="0.01" value="1"><output id="ts-f-o">1.00</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="A4">
+  <div class="txt">
+    <div class="sh"><span class="code">A4</span><h3>Дупките навътре</h3></div>
+    <p class="goal">Всеки пръстен влиза навътре по своята посока.</p>
+    <ol class="do" data-tour="normal">
+      <li><span class="k"><kbd>1</kbd> · <kbd>X</kbd></span><span class="a">изтрий точката в средата на дупката</span></li>
+      <li><span class="k"><kbd>Alt</kbd> + клик</span><span class="a">избери пръстена · <kbd>Shift</kbd> <kbd>Alt</kbd> + клик за още</span></li>
+      <li><span class="k">хедър</span><span class="a">ориентация <b>Global → Normal</b></span></li>
+      <li><span class="k"><kbd>E</kbd> <kbd>Z</kbd></span><span class="a">екструдирай навътре, клик</span></li>
+    </ol>
+    <p class="why"><b>Защо Normal</b>Z сочи по нормалата на лицата. С Global трите дупки отиват право надолу.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="normal"></figure>
+    <figure class="fig" data-w="orient" hidden>
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><button class="btn" id="or-g" aria-pressed="false">Global</button><button class="btn" id="or-n" aria-pressed="true">Normal</button><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="A5">
+  <div class="txt">
+    <div class="sh"><span class="code">A5</span><h3>Дъно с Grid Fill</h3></div>
+    <p class="goal">Затвори дъното с чиста мрежа.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>Alt</kbd> + клик</span><span class="a">долния пръстен на дупката</span></li>
+      <li><span class="k"><kbd>F3</kbd></span><span class="a">„grid fill“ (или Face ▸ <b>Grid Fill</b>)</span></li>
+      <li><span class="k">панел долу вляво</span><span class="a"><b>Span 2</b></span></li>
+    </ol>
+    <p class="why"><b>Правило</b>Пръстенът трябва да има четен брой точки.</p>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="gridfill">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><label>точки <input type="range" id="gf-n" min="8" max="20" step="4" value="12"><output id="gf-n-o">12</output></label><label>Span <input type="range" id="gf-s" min="1" max="5" step="1" value="3"><output id="gf-s-o">3</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="A6">
+  <div class="txt">
+    <div class="sh"><span class="code">A6</span><h3>Изглаждане</h3></div>
+    <p class="goal">От многоъгълници към гладка топка.</p>
+    <ol class="do" data-tour="modifier">
+      <li><span class="k"><kbd>Tab</kbd> · десен клик</span><span class="a">Object Mode ▸ <b>Shade Smooth</b></span></li>
+      <li><span class="k">Properties</span><span class="a">🔧 Modifiers ▸ <b>Add Modifier</b></span></li>
+      <li><span class="k">меню</span><span class="a">Generate ▸ <b>Subdivision Surface</b></span></li>
+      <li><span class="k">панел</span><span class="a">Levels Viewport <b>2</b></span></li>
+      <li><span class="k"><kbd>G</kbd> <kbd>Z</kbd></span><span class="a">сложи топката на пода</span></li>
+    </ol>
+    <p class="why"><b>Бързо</b><kbd>Ctrl</kbd> <kbd>2</kbd> добавя Subdivision ниво 2 наведнъж.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="modifier"></figure>
+    <figure class="fig" data-w="subdiv" hidden>
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><label>Levels <input type="range" id="sd-l" min="0" max="4" step="1" value="2"><output id="sd-l-o">2</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<div class="shots">
+  <figure><img src="ball1.jpg" alt="UV сфера 64 на 32" loading="lazy"><figcaption>A1 · сфера 64 × 32</figcaption></figure>
+  <figure><img src="ball2.jpg" alt="Сфера с три дупки" loading="lazy"><figcaption>A2–A5 · три дупки</figcaption></figure>
+  <figure><img src="ball3.jpg" alt="Сфера след Subdivision" loading="lazy"><figcaption>A6 · Subdivision 2</figcaption></figure>
+  <figure><img src="ball4.jpg" alt="Синя топка" loading="lazy"><figcaption>след D · с цвят</figcaption></figure>
+</div>
+
+<div class="part" id="pB"><span class="letter">B</span><h2>Кеглата</h2><p>Профил пръстен по пръстен</p></div>
+
+<article class="step" id="B1">
+  <div class="txt">
+    <div class="sh"><span class="code">B1</span><h3>Профил с E · Z · S</h3></div>
+    <p class="goal">Тяло, шия, глава от един кръг.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>Shift</kbd> <kbd>A</kbd></span><span class="a">Mesh ▸ <b>Circle</b> · <kbd>S</kbd> по-малък</span></li>
+      <li><span class="k">хедър</span><span class="a">ориентация обратно на <b>Global</b></span></li>
+      <li><span class="k"><kbd>Tab</kbd> · <kbd>A</kbd></span><span class="a">Edit Mode, избери кръга</span></li>
+      <li><span class="k"><kbd>E</kbd> <kbd>Z</kbd></span><span class="a">нов пръстен нагоре</span></li>
+      <li><span class="k"><kbd>S</kbd></span><span class="a">по-широк или по-тесен</span></li>
+      <li><span class="k">повтори</span><span class="a">широко → тясно → широко → връх</span></li>
+      <li><span class="k"><kbd>F3</kbd></span><span class="a"><b>Grid Fill</b> отгоре и отдолу</span></li>
+    </ol>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="lathe">
+      <canvas data-ar="1.2"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button><span id="la-o" style="font-family:var(--mono)"></span></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="B2">
+  <div class="txt">
+    <div class="sh"><span class="code">B2</span><h3>Изглаждане и On Cage</h3></div>
+    <p class="goal">Оформяй, докато виждаш гладкия резултат.</p>
+    <ol class="do" data-tour="pin">
+      <li><span class="k">като A6</span><span class="a">Shade Smooth + Subdivision <b>2</b></span></li>
+      <li><span class="k">модификатор</span><span class="a">бутон <b>On Cage</b> ▽</span></li>
+      <li><span class="k"><kbd>Alt</kbd> + клик · <kbd>S</kbd></span><span class="a">поправи пръстените в Edit Mode</span></li>
+    </ol>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="pin"></figure></div>
+</article>
+
+<article class="step" id="B3">
+  <div class="txt">
+    <div class="sh"><span class="code">B3</span><h3>Очи</h3></div>
+    <p class="goal">Две очи и две зеници.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>Shift</kbd> <kbd>A</kbd></span><span class="a">UV Sphere · Segments и Rings <b>по-малко</b></span></li>
+      <li><span class="k"><kbd>S</kbd> · <kbd>G</kbd> <kbd>X</kbd></span><span class="a">малка, забита в главата</span></li>
+      <li><span class="k"><kbd>Shift</kbd> <kbd>D</kbd> <kbd>Y</kbd></span><span class="a">второто око</span></li>
+      <li><span class="k"><kbd>Shift</kbd> <kbd>D</kbd> · <kbd>S</kbd></span><span class="a">по-малко копие отпред: <b>зеница</b></span></li>
+    </ol>
+  </div>
+  <div class="shots" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0">
+    <figure><img src="pin1.jpg" alt="Мрежата на кеглата" loading="lazy"><figcaption>B1 · пръстените</figcaption></figure>
+    <figure><img src="pin2.jpg" alt="Кегла с очи и лента" loading="lazy"><figcaption>B3 · с очи (цвят: част D)</figcaption></figure>
+  </div>
+</article>
+
+<div class="part" id="pC"><span class="letter">C</span><h2>Сцена</h2><p>Под, камера, йерархия, три кегли</p></div>
+
+<article class="step" id="C1">
+  <div class="txt">
+    <div class="sh"><span class="code">C1</span><h3>Камера и кадър</h3></div>
+    <p class="goal">Нагласи кадъра, като се движиш в него.</p>
+    <ol class="do" data-tour="cam">
+      <li><span class="k"><kbd>Shift</kbd> <kbd>A</kbd></span><span class="a">Mesh ▸ <b>Plane</b> (под, <kbd>S</kbd> голям) · после <b>Camera</b></span></li>
+      <li><span class="k"><kbd>Numpad 0</kbd></span><span class="a">поглед през камерата</span></li>
+      <li><span class="k"><kbd>N</kbd></span><span class="a">раздел View ▸ ☑ <b>Camera to View</b></span></li>
+      <li><span class="k">навигация</span><span class="a">нагласи кадъра · махни отметката</span></li>
+      <li><span class="k">Properties</span><span class="a">📷 камера ▸ Viewport Display ▸ <b>Passepartout 1</b></span></li>
+    </ol>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="cam"></figure>
+    <figure class="fig" data-w="passe" hidden>
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><label>Passepartout <input type="range" id="pp-a" min="0" max="1" step="0.01" value="1"><output id="pp-a-o">1.00</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="C2">
+  <div class="txt">
+    <div class="sh"><span class="code">C2</span><h3>Йерархия: Parent</h3></div>
+    <p class="goal">Кеглата носи очите, окото носи зеницата.</p>
+    <ol class="do">
+      <li><span class="k">клик</span><span class="a">избери <b>детето</b> (зеницата)</span></li>
+      <li><span class="k"><kbd>Shift</kbd> + клик</span><span class="a"><b>родителя</b> (окото), последен</span></li>
+      <li><span class="k"><kbd>Ctrl</kbd> <kbd>P</kbd></span><span class="a">▸ <b>Object</b></span></li>
+      <li><span class="k">повтори</span><span class="a">двете очи → кеглата</span></li>
+      <li><span class="k"><kbd>F2</kbd></span><span class="a">имена: Pin, Eye, Pupil</span></li>
+    </ol>
+    <p class="why"><b>Правило</b>Последният избран е родителят.</p>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="parent">
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><button class="btn" id="pa-on" aria-pressed="true">с parent</button><button class="btn" id="pa-off" aria-pressed="false">без parent</button><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="C3">
+  <div class="txt">
+    <div class="sh"><span class="code">C3</span><h3>Три кегли</h3></div>
+    <p class="goal">Копирай кеглата заедно с очите.</p>
+    <ol class="do" data-tour="dup">
+      <li><span class="k">Outliner · десен клик</span><span class="a">върху Pin ▸ <b>Select Hierarchy</b></span></li>
+      <li><span class="k"><kbd>Shift</kbd> <kbd>D</kbd> <kbd>Y</kbd></span><span class="a">копие встрани, клик</span></li>
+      <li><span class="k">повтори</span><span class="a">третата кегла</span></li>
+    </ol>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="dup"></figure></div>
+</article>
+
+<div class="part" id="pD"><span class="letter">D</span><h2>Цвят</h2><p>Материал с един цвят, без възли</p></div>
+
+<article class="step" id="D1">
+  <div class="txt">
+    <div class="sh"><span class="code">D1</span><h3>Нов материал</h3></div>
+    <p class="goal">Обектът получава собствен цвят.</p>
+    <ol class="do" data-tour="color1">
+      <li><span class="k">хедър · <kbd>Z</kbd></span><span class="a">изглед <b>Material Preview</b>: виждаш цветовете</span></li>
+      <li><span class="k">клик</span><span class="a">избери обекта</span></li>
+      <li><span class="k">Properties</span><span class="a">● раздел <b>Material</b></span></li>
+      <li><span class="k">бутон</span><span class="a"><b>+ New</b></span></li>
+    </ol>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="color1"></figure></div>
+</article>
+
+<article class="step" id="D2">
+  <div class="txt">
+    <div class="sh"><span class="code">D2</span><h3>Base Color</h3></div>
+    <p class="goal">Избери цвета. Повтори за всеки обект.</p>
+    <ol class="do" data-tour="color2">
+      <li><span class="k">клик</span><span class="a">полето <b>Base Color</b></span></li>
+      <li><span class="k">кръгът</span><span class="a"><b>тон</b> и наситеност · плъзгачът: <b>яркост</b></span></li>
+      <li><span class="k">▾ до името</span><span class="a">вземи <b>същия</b> материал за друг обект</span></li>
+    </ol>
+    <ol class="do">
+      <li><span class="k">под</span><span class="a">тъмносив</span></li>
+      <li><span class="k">топка</span><span class="a">син</span></li>
+      <li><span class="k">кегли</span><span class="a">бял · един материал за трите</span></li>
+      <li><span class="k">очи · зеници</span><span class="a">бяло · черно</span></li>
+    </ol>
+    <p class="why"><b>Един материал, много обекти</b>Смениш ли цвета, сменя се навсякъде.</p>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="color2"></figure></div>
+</article>
+
+<article class="step" id="D3">
+  <div class="txt">
+    <div class="sh"><span class="code">D3</span><h3>Червената лента</h3></div>
+    <p class="goal">Втори цвят само на част от обекта.</p>
+    <ol class="do" data-tour="color3">
+      <li><span class="k"><kbd>Tab</kbd> · <kbd>3</kbd> · <kbd>Alt</kbd> + клик</span><span class="a">пояс лица на шията</span></li>
+      <li><span class="k"><b>+</b></span><span class="a">нов <b>слот</b> ▸ New ▸ червен Base Color</span></li>
+      <li><span class="k">бутон</span><span class="a"><b>Assign</b>: избраните лица стават червени</span></li>
+    </ol>
+    <p class="why"><b>Слот</b>Място за материал в обекта. Assign казва кои лица ползват кой слот.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="color3"></figure>
+    <figure class="fig" data-w="slots" hidden>
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button><span id="sl-o" style="font-family:var(--mono)"></span></div>
+    </figure>
+  </div>
+</article>
+
+<div class="part" id="pE"><span class="letter">E</span><h2>Светлина и камера</h2><p>Посока, обектив, фокус</p></div>
+
+<article class="step" id="E1">
+  <div class="txt">
+    <div class="sh"><span class="code">E1</span><h3>Слънце</h3></div>
+    <p class="goal">Една посока на светлината и ясни сенки.</p>
+    <ol class="do" data-tour="sun">
+      <li><span class="k"><kbd>Shift</kbd> <kbd>A</kbd></span><span class="a">Light ▸ <b>Sun</b></span></li>
+      <li><span class="k"><kbd>R</kbd></span><span class="a">завърти · Strength в Properties</span></li>
+    </ol>
+    <p class="why"><b>Sun</b>Важи само посоката. Където и да стои, свети еднакво.</p>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="sun"></figure></div>
+</article>
+
+<article class="step" id="E2">
+  <div class="txt">
+    <div class="sh"><span class="code">E2</span><h3>Дълъг обектив</h3></div>
+    <p class="goal">Плосък, театрален кадър.</p>
+    <ol class="do" data-tour="lens">
+      <li><span class="k">📷 Properties</span><span class="a">Lens ▸ <b>Focal Length</b> нагоре (напр. 70 mm)</span></li>
+      <li><span class="k">навигация</span><span class="a">отдалечи камерата, докато кадърът пак е пълен</span></li>
+    </ol>
+    <p class="why"><b>Ефект</b>Близко и далечно изглеждат почти еднакво големи.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Как работи</button><button role="tab" aria-selected="false">Къде</button></div>
+    <figure class="fig" data-w="lens">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><label>Focal Length <input type="range" id="ln-f" min="18" max="135" step="1" value="50"><output id="ln-f-o">50mm</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+    <figure class="tour" data-tour="lens" hidden></figure>
+  </div>
+</article>
+
+<article class="step" id="E3">
+  <div class="txt">
+    <div class="sh"><span class="code">E3</span><h3>Фокус</h3></div>
+    <p class="goal">Рязка кегла, мек фон.</p>
+    <ol class="do" data-tour="dof">
+      <li><span class="k">📷 Properties</span><span class="a">☑ <b>Depth of Field</b></span></li>
+      <li><span class="k">панел</span><span class="a"><b>Focus on Object</b>: средната кегла</span></li>
+      <li><span class="k">панел</span><span class="a"><b>F-Stop</b>: по-малко = по-размито</span></li>
+    </ol>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Как работи</button><button role="tab" aria-selected="false">Къде</button></div>
+    <figure class="fig" data-w="dof">
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><label>F-Stop <input type="range" id="df-f" min="0" max="1" step="0.01" value="0.3"><output id="df-f-o">2.8</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+    <figure class="tour" data-tour="dof" hidden></figure>
+  </div>
+</article>
+
+<div class="part" id="pF"><span class="letter">F</span><h2>Анимация</h2><p>Поза към поза, после тайминг</p></div>
+
+<article class="step" id="F1">
+  <div class="txt">
+    <div class="sh"><span class="code">F1</span><h3>Пространство Animation</h3></div>
+    <p class="goal">Всичко за анимация на един екран.</p>
+    <ol class="do" data-tour="anim">
+      <li><span class="k">горе</span><span class="a">раздел <b>Animation</b></span></li>
+      <li><span class="k">долу</span><span class="a"><b>Dope Sheet</b>: ред = обект, точка = ключ</span></li>
+      <li><span class="k">хедър на Dope Sheet</span><span class="a">изключи <b>Only Show Selected</b></span></li>
+      <li><span class="k">най-долу</span><span class="a">● <b>Auto Keying</b>: включи</span></li>
+      <li><span class="k">линийката</span><span class="a">синьото число е текущият <b>кадър</b></span></li>
+    </ol>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="anim"></figure></div>
+</article>
+
+<article class="step" id="F2">
+  <div class="txt">
+    <div class="sh"><span class="code">F2</span><h3>Поза към поза</h3></div>
+    <p class="goal">Ключовете не се преливат. Първо таймингът.</p>
+    <ol class="do" data-tour="prefs">
+      <li><span class="k">Edit ▸ Preferences</span><span class="a">раздел <b>Animation</b></span></li>
+      <li><span class="k">F-Curves</span><span class="a">Default Interpolation: <b>Constant</b></span></li>
+      <li><span class="k">F-Curves</span><span class="a">☑ <b>Only Show Selected F-Curve Keyframes</b></span></li>
+      <li><span class="k">Keyframes</span><span class="a">Default Key Channels: какво записва <kbd>I</kbd></span></li>
+    </ol>
+    <p class="why"><b>Constant</b>Позата стои до следващия ключ. Когато таймингът е готов: <kbd>T</kbd> ▸ <b>Bézier</b>.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Къде</button><button role="tab" aria-selected="false">Как работи</button></div>
+    <figure class="tour" data-tour="prefs"></figure>
+    <figure class="fig" data-w="interp" hidden>
+      <canvas data-ar="1.25"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button><span style="font-family:var(--mono)">ключове: кадър 1 · 12 · 20</span></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="F3">
+  <div class="txt">
+    <div class="sh"><span class="code">F3</span><h3>Топката влиза</h3></div>
+    <p class="goal">Влиза, подминава, връща се.</p>
+    <ol class="do" data-tour="ball">
+      <li><span class="k">кадър 1 · <kbd>G</kbd> <kbd>Y</kbd></span><span class="a">топката извън кадър → <b>ключ</b> (Auto Keying)</span></li>
+      <li><span class="k">кадър 20 · <kbd>G</kbd> <kbd>Y</kbd></span><span class="a">топката в кадър · <kbd>R</kbd> <kbd>X</kbd> търкаляне</span></li>
+      <li><span class="k">+5 · +4 · +4</span><span class="a">малко напред · назад · на място</span></li>
+      <li><span class="k">Dope Sheet · <kbd>T</kbd></span><span class="a">ключовете ▸ <b>Bézier</b></span></li>
+    </ol>
+    <p class="why"><b>Търкаляне</b>Ъгъл = изминат път ÷ радиус.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Как работи</button><button role="tab" aria-selected="false">Къде</button></div>
+    <figure class="fig" data-w="overshoot">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+    <figure class="tour" data-tour="ball" hidden></figure>
+  </div>
+</article>
+
+<article class="step" id="F4">
+  <div class="txt">
+    <div class="sh"><span class="code">F4</span><h3>Поглед и мигване</h3></div>
+    <p class="goal">Кеглите забелязват топката.</p>
+    <ol class="do" data-tour="pivot">
+      <li><span class="k">зениците · <kbd>I</kbd></span><span class="a">ключ · +3 кадъра · <kbd>G</kbd> към топката</span></li>
+      <li><span class="k">хедър · <kbd>.</kbd></span><span class="a">Pivot ▸ <b>Individual Origins</b></span></li>
+      <li><span class="k">очите · <kbd>S</kbd> <kbd>Z</kbd></span><span class="a">сплескай → отвори: <b>мигване</b></span></li>
+    </ol>
+    <p class="why"><b>I в 5.2</b>Записва Location, Rotation, Scale веднага. Меню с избор: <kbd>K</kbd>.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Как работи</button><button role="tab" aria-selected="false">Къде</button></div>
+    <figure class="fig" data-w="pivot">
+      <canvas data-ar="1.6"></canvas>
+      <div class="ctl"><button class="btn" id="pv-m" aria-pressed="false">Median Point</button><button class="btn" id="pv-i" aria-pressed="true">Individual Origins</button><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+    <figure class="tour" data-tour="pivot" hidden></figure>
+  </div>
+</article>
+
+<article class="step" id="F5">
+  <div class="txt">
+    <div class="sh"><span class="code">F5</span><h3>Разместване</h3></div>
+    <p class="goal">Трима герои, не един робот.</p>
+    <ol class="do">
+      <li><span class="k">Dope Sheet</span><span class="a">свий каналите: ▸ до името</span></li>
+      <li><span class="k">клик · <kbd>G</kbd></span><span class="a">ключовете на всяка кегла с <b>2–3 кадъра</b> по-късно</span></li>
+    </ol>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="offset">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><label>offset <input type="range" id="of-o" min="0" max="6" step="1" value="3"><output id="of-o-o">3 кадъра</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="F6">
+  <div class="txt">
+    <div class="sh"><span class="code">F6</span><h3>Скок</h3></div>
+    <p class="goal">Подготовка, разтягане, дъга, приземяване.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>I</kbd> · +5 · <kbd>R</kbd></span><span class="a">наклон назад: <b>подготовка</b></span></li>
+      <li><span class="k"><kbd>G</kbd> <kbd>Z</kbd></span><span class="a">нагоре и встрани, по <b>дъга</b></span></li>
+      <li><span class="k">хедър</span><span class="a">ориентация <b>Local</b></span></li>
+      <li><span class="k"><kbd>S</kbd> <kbd>Z</kbd> · <kbd>S</kbd> <kbd>Shift</kbd> <kbd>Z</kbd></span><span class="a">по-висока и по-тънка: <b>stretch</b></span></li>
+      <li><span class="k">при земята</span><span class="a">по-ниска и по-широка: <b>squash</b></span></li>
+    </ol>
+    <p class="why"><b>Обем</b>Расте ли Z, X и Y намаляват. <kbd>Shift</kbd> <kbd>Z</kbd> = всички оси без Z.</p>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="squash">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><button class="btn" id="sq-v" aria-pressed="true">пази обема</button><button class="btn" data-play aria-pressed="true">▶</button><span id="sq-o" style="font-family:var(--mono)"></span></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="F7">
+  <div class="txt">
+    <div class="sh"><span class="code">F7</span><h3>Копирай скока</h3></div>
+    <p class="goal">Втората кегла скача като първата, от своето място.</p>
+    <ol class="do" data-tour="copy">
+      <li><span class="k"><kbd>B</kbd> · <kbd>Ctrl</kbd> <kbd>C</kbd></span><span class="a">ключовете на първата, <b>без X Location</b></span></li>
+      <li><span class="k"><kbd>I</kbd> · <kbd>A</kbd> · <kbd>Ctrl</kbd> <kbd>V</kbd></span><span class="a">втората кегла: ключ, всички канали, постави</span></li>
+      <li><span class="k"><kbd>Ctrl</kbd> <kbd>Tab</kbd></span><span class="a"><b>Graph Editor</b></span></li>
+      <li><span class="k">клик · <kbd>G</kbd> <kbd>Y</kbd></span><span class="a">кривата <b>Y Location</b> цялата на мястото на кеглата</span></li>
+    </ol>
+    <p class="trap"><b>Капан</b>Без ☑ Only Show Selected F-Curve Keyframes (F2) кутията хваща и другите криви.</p>
+  </div>
+  <div class="viz" data-tabs>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true">Как работи</button><button role="tab" aria-selected="false">Къде</button></div>
+    <figure class="fig" data-w="graph">
+      <canvas data-ar="1.25"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button><span id="gr-o" style="font-family:var(--mono);color:var(--ink)"></span></div>
+    </figure>
+    <figure class="tour" data-tour="copy" hidden></figure>
+  </div>
+</article>
+
+<article class="step" id="F8">
+  <div class="txt">
+    <div class="sh"><span class="code">F8</span><h3>Засилване и тайминг</h3></div>
+    <p class="goal">Топката се засилва назад и профучава. Кеглите отскачат.</p>
+    <ol class="do">
+      <li><span class="k"><kbd>G</kbd> <kbd>Y</kbd> назад</span><span class="a">топката: <b>засилване</b></span></li>
+      <li><span class="k"><kbd>G</kbd> <kbd>Y</kbd> напред</span><span class="a">профучава извън кадър</span></li>
+      <li><span class="k">Dope Sheet · <kbd>S</kbd></span><span class="a">ключовете по-близо: <b>по-бързо</b></span></li>
+      <li><span class="k">последният ключ · <kbd>G</kbd></span><span class="a">по-далеч: <b>забавя</b></span></li>
+      <li><span class="k"><kbd>X</kbd></span><span class="a">изтрий ненужни ключове</span></li>
+    </ol>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="retime">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><label>S <input type="range" id="rt-s" min="0.4" max="1.4" step="0.01" value="0.7"><output id="rt-s-o">0.70</output></label><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="F9">
+  <div class="txt">
+    <div class="sh"><span class="code">F9</span><h3>Трус на камерата</h3></div>
+    <p class="goal">Ударът се усеща.</p>
+    <ol class="do">
+      <li><span class="k">камерата · <kbd>I</kbd></span><span class="a">ключ, когато топката мине</span></li>
+      <li><span class="k"><kbd>G</kbd> <kbd>Z</kbd> ×4</span><span class="a">нагоре · надолу · нагоре · надолу, <b>всеки път по-малко</b></span></li>
+      <li><span class="k">последен</span><span class="a">обратно на началото</span></li>
+      <li><span class="k"><kbd>T</kbd> · <kbd>S</kbd></span><span class="a">Bézier · сгъсти</span></li>
+    </ol>
+  </div>
+  <div class="viz">
+    <figure class="fig" data-w="shake">
+      <canvas data-ar="1.45"></canvas>
+      <div class="ctl"><button class="btn" data-play aria-pressed="true">▶</button></div>
+    </figure>
+  </div>
+</article>
+
+<article class="step" id="F10">
+  <div class="txt">
+    <div class="sh"><span class="code">F10</span><h3>Още мигания</h3></div>
+    <p class="goal">Само каналите за мащаб, без да пипаш погледа.</p>
+    <ol class="do" data-tour="filter">
+      <li><span class="k"><kbd>Ctrl</kbd> <kbd>F</kbd></span><span class="a">полето за търсене над каналите</span></li>
+      <li><span class="k">пиши</span><span class="a"><code>scale</code>: остават само мащабите</span></li>
+      <li><span class="k"><kbd>B</kbd> · <kbd>Shift</kbd> <kbd>D</kbd></span><span class="a">копирай мигането по-нататък</span></li>
+    </ol>
+  </div>
+  <div class="viz"><figure class="tour" data-tour="filter"></figure></div>
+</article>
+</section>
+
+<section id="principles">
+  <header><div class="eyebrow">Справочник</div><h2>Принципи</h2><p>Важат във всяка програма.</p></header>
+  <div class="principles" id="princ"></div>
+</section>
+
+<section id="keys">
+  <header><div class="eyebrow">Справочник</div><h2>Клавиши</h2><p>Клавишната карта по подразбиране на Blender 5.2.</p></header>
+  <div class="tools"><label for="kq" class="n">филтър</label><input id="kq" type="search" placeholder="напр. ключ, Graph, S"><span class="n" id="kn"></span></div>
+  <div class="tbl"><table><thead><tr><th>Клавиш</th><th>Действие</th><th>Къде</th><th>Стъпка</th></tr></thead><tbody id="kb"></tbody></table></div>
+</section>
+
+<section id="terms">
+  <header><div class="eyebrow">Справочник</div><h2>Термини</h2><p>Името е както в интерфейса.</p></header>
+  <div class="tools"><label for="tq" class="n">филтър</label><input id="tq" type="search" placeholder="напр. слот, ключ, нормала"><span class="n" id="tn"></span></div>
+  <div class="tbl"><table><thead><tr><th>Термин</th><th>Какво е</th><th>Стъпка</th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+
+<section id="files">
+  <header><div class="eyebrow">Файлове</div><h2>Готовата сцена</h2></header>
+  <div class="files">
+    <p><code>C:\NHA\_Асистент\Уроци\CBaileyFilm_кегли\kegli_rebuild_5.2.blend</code></p>
+    <p style="color:var(--muted)">Топка, три кегли с очи и йерархия, цветове, Sun, камера с фокус, анимация 1–124. Направена и проверена в Blender 5.2.</p>
+  </div>
+</section>
+
+</main>
+</div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const PR = [['Поза към поза','Позите първо (Constant), преливането после (Bézier).','F2'],['Подготовка','Движение назад преди главното: наклонът, засилването.','F6'],['Squash & stretch','Разтягане и сплескване при същия обем.','F6'],['Подминаване','Топката минава мястото си и се връща.','F3'],['Дъга','Скокът е крива, не права.','F6'],['Разместване','Героите реагират с разлика от кадри.','F5'],['Тайминг','Ключове по-близо = по-бързо.','F8'],['Затихване','Всеки удар е по-малък от предишния.','F9']];
+$('princ').innerHTML = PR.map(([a,b,c])=>`<div class="pr"><b>${a}</b><span>${b}</span><a href="#${c}">${c}</a></div>`).join('');
+
+const K = [
+ ['Навигация'],
+ ['средно копче','Върти погледа','Viewport','ws'],['Shift + средно','Мести погледа','Viewport','ws'],['колело','Приближава','Viewport','ws'],['Numpad_.','Центрира избраното','Viewport','ws'],['Numpad_0','Поглед през камерата','Viewport','C1'],['N','Страничен панел','Viewport','C1'],['Z','Пай меню за изглед (Solid, Material Preview…)','Viewport','D1'],
+ ['Общи'],
+ ['A','Избери всичко','навсякъде','A1'],['X','Изтрий','навсякъде','A1'],['Shift A','Добави обект','Viewport','A1'],['F3','Търсене на команда','навсякъде','A3'],['F9','Върни панела на последната команда','Viewport','A1'],['Tab','Object ⇄ Edit Mode','Viewport','A2'],['F2','Преименувай','Viewport','C2'],
+ ['Моделиране'],
+ ['1 / 2 / 3','Точки / ребра / лица','Edit Mode','A2'],['Alt + клик','Избери пръстен','Edit Mode','A4'],['Shift + Alt + клик','Добави пръстен','Edit Mode','A4'],['I','Inset','Edit Mode','A2'],['Shift Alt S','To Sphere','Edit Mode','A3'],['E','Екструдирай','Edit Mode','A4'],['G / R / S','Премести / завърти / мащаб','Viewport','B1'],['X / Y / Z','След G, R, S: само по тази ос','Viewport','B1'],['Shift Z','Всички оси без Z','Viewport','F6'],['Shift D','Дублирай','Viewport','C3'],['Ctrl 1…5','Subdivision с това ниво','Viewport','A6'],
+ ['Сцена'],
+ ['Ctrl P','Parent към последния избран','Object Mode','C2'],['Alt P','Махни parent','Object Mode','C2'],['.','Pivot Point (пай меню)','Viewport','F4'],['Alt G / Alt R / Alt S','Нулирай позиция / ротация / мащаб','Object Mode','F6'],
+ ['Анимация'],
+ ['I','Ключ (Location, Rotation, Scale)','Viewport','F4'],['K','Ключ с избор на канали','Viewport','F4'],['Alt I','Изтрий ключа','Viewport','F3'],['Space','Пусни / спри','навсякъде','F1'],['← / →','Кадър назад / напред','навсякъде','F3'],['Ctrl Tab','Dope Sheet ⇄ Graph Editor','Dope Sheet','F7'],['B','Избор с кутия','Dope Sheet · Graph','F7'],['Ctrl C / Ctrl V','Копирай / постави ключове','Dope Sheet · Graph','F7'],['S','Ключове по-близо или по-далеч','Dope Sheet','F8'],['T','Интерполация (Constant, Bézier…)','Dope Sheet · Graph','F2'],['Ctrl F','Търсене в каналите','Dope Sheet','F10'],['Home','Покажи всички ключове','Dope Sheet · Graph','F1']
+];
+const kbd = s => s.split(' / ').map(p => p.split(/\s*\+\s*|\s+/).map(x => /^[а-я]{3,}/.test(x) ? x : `<kbd>${x.replace(/_/g,' ')}</kbd>`).join(' ')).join(' / ');
+function renderK(){ const q = $('kq').value.trim().toLowerCase(); let html='', n=0, pending=null;
+  K.forEach(r => { if (r.length===1){ pending=r[0]; return; } const [k,d,w,st]=r; if (q && !(k+' '+d+' '+w).toLowerCase().includes(q)) return;
+    if (pending){ html += `<tr class="grp"><td colspan="4">${pending}</td></tr>`; pending=null; }
+    n++; html += `<tr><td class="k">${kbd(k)}</td><td>${d}</td><td class="m">${w}</td><td class="m"><a href="#${st}">${st==='ws'?'начало':st}</a></td></tr>`; });
+  $('kb').innerHTML = html || '<tr><td colspan="4">Няма съвпадения.</td></tr>'; $('kn').textContent = n+' клавиша'; }
+$('kq').addEventListener('input', renderK); renderK();
+
+const T = [
+ ['Mesh · Vertex · Edge · Face','Мрежа от точки, ребра и лица. В Edit Mode: 1, 2, 3.','A2'],
+ ['Object Mode · Edit Mode','Цели обекти · точките, ребрата и лицата им. Tab сменя.','A2'],
+ ['UV Sphere','Сфера от вертикални резени (Segments) и пояси (Rings).','A1'],
+ ['Adjust Last Operation','Панелът долу вляво с параметрите на последната команда. F9 го връща.','A1'],
+ ['Inset','По-малко копие на избраните лица вътре в тях.','A2'],
+ ['To Sphere','Точките застават по окръжност. Factor 1 = кръг.','A3'],
+ ['Edge loop','Затворен пръстен от ребра. Alt + клик.','A4'],
+ ['Transform Orientation','По кои оси работят G, R, S, E: Global, Local, Normal…','A4'],
+ ['Normal','Посоката, в която гледа лицето.','A4'],
+ ['Extrude','Изтегля нова геометрия, свързана със старата.','A4'],
+ ['Grid Fill','Затваря пръстен с мрежа от четириъгълници. Span = размер на мрежата.','A5'],
+ ['Shade Smooth','Гладко осветяване. Геометрията не се променя.','A6'],
+ ['Modifier','Промяна, която не разрушава мрежата. Раздел 🔧.','A6'],
+ ['Subdivision Surface','Модификатор, който дели лицата и закръгля. Levels = брой деления.','A6'],
+ ['On Cage','Модификаторът се вижда и върху точките в Edit Mode.','B2'],
+ ['Parent · Child','Детето следва родителя. Последният избран е родителят.','C2'],
+ ['Select Hierarchy','Избира обекта и всичко под него.','C3'],
+ ['Passepartout','Затъмнение извън кадъра на камерата.','C1'],
+ ['Camera to View','Камерата следва навигацията.','C1'],
+ ['Material','Как изглежда повърхността. Тук: само цвят.','D1'],
+ ['Material Preview','Изглед, който показва материалите.','D1'],
+ ['Base Color','Основният цвят на материала.','D2'],
+ ['Material slot','Място за материал в обекта. Assign дава слота на избраните лица.','D3'],
+ ['Sun','Светлина само с посока.','E1'],
+ ['Focal Length','Обективът в mm. По-дълъг = по-тесен и по-плосък кадър.','E2'],
+ ['Depth of Field · F-Stop','Фокус. По-малко F-Stop = по-размито.','E3'],
+ ['Workspace','Готова подредба на редактори: Layout, Animation…','F1'],
+ ['Keyframe (ключ)','Записана стойност в даден кадър. В Dope Sheet: точка.','F1'],
+ ['Auto Keying','Всяко движение записва ключ. Бутонът ●.','F1'],
+ ['Dope Sheet','Ключовете на всички обекти по време.','F1'],
+ ['Interpolation','Как се смята между ключовете: Constant, Linear, Bézier.','F2'],
+ ['Pivot Point','Около коя точка става мащаб и въртене.','F4'],
+ ['Graph Editor · F-curve','Ключовете като криви: стойност по време.','F7'],
+ ['Channel','Едно анимирано свойство, напр. Y Location.','F7'],
+ ['Squash & stretch','Сплескване и разтягане при запазен обем.','F6']
+];
+function renderT(){ const q = $('tq').value.trim().toLowerCase(); const rows = T.filter(r => !q || (r[0]+' '+r[1]).toLowerCase().includes(q));
+  $('tb').innerHTML = rows.map(([a,b,s])=>`<tr><td><b>${a}</b></td><td>${b}</td><td class="m"><a href="#${s}">${s}</a></td></tr>`).join('') || '<tr><td colspan="3">Няма съвпадения.</td></tr>';
+  $('tn').textContent = rows.length+' термина'; }
+$('tq').addEventListener('input', renderT); renderT();
+
+const links = [...document.querySelectorAll('nav.toc a')];
+if ('IntersectionObserver' in window){ const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle('on', l.getAttribute('href')==='#'+e.target.id)); }), {rootMargin:'-20% 0px -70% 0px'});
+  links.forEach(l => { const t = document.querySelector(l.getAttribute('href')); if (t) io.observe(t); }); }
+
+let C = {};
+const _ac = new Map(), _actx = document.createElement('canvas').getContext('2d');
+function readC(){ const s = getComputedStyle(document.documentElement); ['bg','surface','sunk','ink','muted','line','key','keysoft','x','y','z','sel'].forEach(k => C[k] = s.getPropertyValue('--'+k).trim()); _ac.clear(); }
+readC();
+function alpha(col,a){ const k = col+'|'+a; if (_ac.has(k)) return _ac.get(k); _actx.fillStyle = col; const c = _actx.fillStyle; let r = c; if (c[0]==='#'){ const n = parseInt(c.slice(1),16); r = `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; } _ac.set(k,r); return r; }
+const lerp = (a,b,t) => a+(b-a)*t, clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const ease = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+function bindRange(id, f){ const el = $(id), o = $(id+'-o'); const upd = () => { if (o) o.textContent = f ? f(+el.value) : el.value; }; el.addEventListener('input', upd); upd(); return el; }
+function toggle(ids, cb){ ids.forEach(id => $(id).addEventListener('click', () => { ids.forEach(j => $(j).setAttribute('aria-pressed', j===id)); cb(id); })); }
+function line(g, pts, col, w=1.5, dash){ g.beginPath(); pts.forEach((p,i)=> i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.strokeStyle=col; g.lineWidth=w; g.setLineDash(dash||[]); g.stroke(); g.setLineDash([]); }
+function dot(g,x,y,r,col){ g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle=col; g.fill(); }
+function key(g,x,y,r,fill,stroke){ g.beginPath(); g.arc(x,y,r*0.85,0,7); g.fillStyle=fill; g.fill(); if(stroke){ g.strokeStyle=stroke; g.lineWidth=1; g.stroke(); } }
+function text(g,s,x,y,col,size=11,align='left'){ g.fillStyle=col; g.font=`${size}px "JetBrains Mono",monospace`; g.textAlign=align; g.textBaseline='middle'; g.fillText(s,x,y); }
+function pinPath(g, cx, base, h, sx=1, sz=1){
+  const P = [[0,.32],[.09,.42],[.23,.5],[.38,.46],[.55,.3],[.64,.21],[.74,.24],[.83,.31],[.92,.3],[1,.2]], W = h*0.5;
+  g.beginPath(); g.moveTo(cx - P[0][1]*W*sx, base);
+  P.forEach(([z,r]) => g.lineTo(cx - r*W*sx, base - z*h*sz));
+  g.quadraticCurveTo(cx, base - h*sz*1.05, cx + .2*W*sx, base - h*sz);
+  [...P].reverse().forEach(([z,r]) => g.lineTo(cx + r*W*sx, base - z*h*sz));
+  g.closePath(); }
+
+const FIG = {};
+FIG.sphere = { init(){ this.seg = bindRange('sp-seg'); this.ring = bindRange('sp-ring'); }, draw(g,w,h,t){
+  const S = +this.seg.value, Rn = +this.ring.value, rot = t*0.25, tilt = 0.38, r = Math.min(w,h)*0.4, cx = w*0.42, cy = h/2;
+  const P = (th,ph) => { const x = Math.sin(th)*Math.cos(ph), y = Math.cos(th), z = Math.sin(th)*Math.sin(ph); return [cx + x*r, cy - (y*Math.cos(tilt) - z*Math.sin(tilt))*r, y*Math.sin(tilt) + z*Math.cos(tilt)]; };
+  const fr = new Path2D(), bk = new Path2D(); const seg = (a,b) => { const p = (a[2]+b[2])/2 > 0 ? fr : bk; p.moveTo(a[0],a[1]); p.lineTo(b[0],b[1]); };
+  for (let i=1;i<Rn;i++){ const th = Math.PI*i/Rn; for (let j=0;j<S;j++) seg(P(th, 2*Math.PI*j/S + rot), P(th, 2*Math.PI*(j+1)/S + rot)); }
+  for (let j=0;j<S;j++){ const ph = 2*Math.PI*j/S + rot; for (let i=0;i<Rn;i++) seg(P(Math.PI*i/Rn, ph), P(Math.PI*(i+1)/Rn, ph)); }
+  g.strokeStyle = alpha(C.muted,.25); g.lineWidth = .7; g.stroke(bk); g.strokeStyle = C.ink; g.lineWidth = 1; g.stroke(fr);
+  const tx = w*0.82; text(g,'Segments',tx,h*0.28,C.muted,11,'center'); text(g,String(S),tx,h*0.28+20,C.key,22,'center');
+  text(g,'Rings',tx,h*0.5,C.muted,11,'center'); text(g,String(Rn),tx,h*0.5+20,C.key,22,'center');
+  text(g,'лица',tx,h*0.72,C.muted,11,'center'); text(g,String(S*Rn),tx,h*0.72+20,C.ink,22,'center'); } };
+
+FIG.inset = { init(){ this.th = bindRange('in-th', v=>v.toFixed(2)); }, draw(g,w,h,t){
+  const v = this.playing ? 0.2+0.18*Math.sin(t*1.4) : +this.th.value; if (this.playing){ this.th.value = v; $('in-th-o').textContent = v.toFixed(2); }
+  const n = 4, cell = Math.min(w*0.9, h*0.9)/n, ox = (w - cell*n)/2, oy = (h - cell*n)/2, X = i => ox + i*cell, Y = j => oy + j*cell;
+  g.fillStyle = alpha(C.key,.18); g.fillRect(X(1),Y(1),cell*2,cell*2);
+  for (let i=0;i<=n;i++){ line(g,[[X(i),Y(0)],[X(i),Y(n)]],C.muted,1); line(g,[[X(0),Y(i)],[X(n),Y(i)]],C.muted,1); }
+  const ins = v*cell, ix0 = X(1)+ins, iy0 = Y(1)+ins, isz = cell*2 - ins*2;
+  g.fillStyle = alpha(C.key,.45); g.fillRect(ix0,iy0,isz,isz);
+  const outer = [[X(1),Y(1)],[X(2),Y(1)],[X(3),Y(1)],[X(3),Y(2)],[X(3),Y(3)],[X(2),Y(3)],[X(1),Y(3)],[X(1),Y(2)]];
+  const inner = [[ix0,iy0],[ix0+isz/2,iy0],[ix0+isz,iy0],[ix0+isz,iy0+isz/2],[ix0+isz,iy0+isz],[ix0+isz/2,iy0+isz],[ix0,iy0+isz],[ix0,iy0+isz/2]];
+  outer.forEach((p,i)=> line(g,[p,inner[i]],C.key,1.5)); line(g,[...inner,inner[0]],C.key,2); line(g,[inner[1],inner[5]],C.key,1.5); line(g,[inner[3],inner[7]],C.key,1.5);
+  inner.forEach(p=>dot(g,p[0],p[1],2.5,C.key)); dot(g,ix0+isz/2,iy0+isz/2,2.5,C.key); text(g,'I', w-14, 14, C.key, 14, 'right'); } };
+
+FIG.tosphere = { init(){ this.f = bindRange('ts-f', v=>v.toFixed(2)); }, draw(g,w,h,t){
+  const f = this.playing ? ease((Math.sin(t*1.2)+1)/2) : +this.f.value; if (this.playing){ this.f.value=f; $('ts-f-o').textContent=f.toFixed(2); }
+  const cx=w/2, cy=h/2, s=Math.min(w,h)*0.32, sq = [[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
+  const pts = sq.map(([x,y]) => { const a = Math.atan2(y,x); return [cx + lerp(x, Math.cos(a)*1.12, f)*s, cy + lerp(y, Math.sin(a)*1.12, f)*s]; });
+  g.beginPath(); g.arc(cx,cy,1.12*s,0,7); g.strokeStyle=alpha(C.muted,.4); g.setLineDash([4,4]); g.lineWidth=1; g.stroke(); g.setLineDash([]);
+  sq.forEach(([x,y],i)=> line(g,[[cx+x*s*1.6,cy+y*s*1.6],pts[i]],alpha(C.muted,.5),1));
+  g.beginPath(); pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.closePath(); g.fillStyle=alpha(C.key,.2); g.fill(); g.strokeStyle=C.key; g.lineWidth=2; g.stroke();
+  pts.forEach(p=>dot(g,p[0],p[1],3.5,C.key)); text(g,'Factor '+f.toFixed(2),12,14,C.ink,11); } };
+
+FIG.orient = { mode:'n', init(){ toggle(['or-g','or-n'], id => this.mode = id==='or-g'?'g':'n'); }, draw(g,w,h,t){
+  const cx = w/2, cy = h*0.95, R = h*0.8, d = (this.playing ? (Math.sin(t*1.3)+1)/2 : 1) * R*0.32;
+  g.beginPath(); g.arc(cx,cy,R,Math.PI,2*Math.PI); g.fillStyle=alpha(C.z,.12); g.fill(); g.strokeStyle=C.muted; g.lineWidth=1.5; g.stroke();
+  [-0.55, 0, 0.5].forEach(a => { const ang = -Math.PI/2 + a, px = cx + Math.cos(ang)*R, py = cy + Math.sin(ang)*R, nx = Math.cos(ang), ny = Math.sin(ang);
+    const dx = this.mode==='n' ? -nx : 0, dy = this.mode==='n' ? -ny : 1, tx = -ny, ty = nx, hw = R*0.07;
+    const a1=[px+tx*hw,py+ty*hw], a2=[px-tx*hw,py-ty*hw], b1=[a1[0]+dx*d,a1[1]+dy*d], b2=[a2[0]+dx*d,a2[1]+dy*d];
+    g.beginPath(); g.moveTo(...a1); g.lineTo(...b1); g.lineTo(...b2); g.lineTo(...a2); g.closePath(); g.fillStyle=alpha(C.key,.35); g.fill(); g.strokeStyle=C.key; g.lineWidth=1.5; g.stroke();
+    const gz = R*0.18, gx = this.mode==='n' ? [-ny, nx] : [1,0], gzv = this.mode==='n' ? [nx,ny] : [0,-1], ox = px + nx*R*0.06, oy = py + ny*R*0.06;
+    line(g,[[ox,oy],[ox+gzv[0]*gz,oy+gzv[1]*gz]],C.z,2.5); line(g,[[ox,oy],[ox+gx[0]*gz*0.7,oy+gx[1]*gz*0.7]],C.x,2.5); text(g,'Z',ox+gzv[0]*gz*1.15,oy+gzv[1]*gz*1.15,C.z,11,'center'); });
+  text(g, this.mode==='n' ? 'Normal: Z = нормалата на лицата' : 'Global: Z = нагоре в света', 12, 14, C.ink, 11); } };
+
+FIG.gridfill = { init(){ this.n = bindRange('gf-n'); this.s = bindRange('gf-s'); }, draw(g,w,h,t){
+  let n = +this.n.value, s = +this.s.value; if (n/2 - s < 1) s = n/2-1; const mm = n/2 - s;
+  const cx=w/2, cy=h/2, r=Math.min(w,h)*0.4, P = []; for (let k=0;k<n;k++){ const a = -Math.PI*3/4 + 2*Math.PI*k/n; P.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r]); }
+  const at = k => P[((k%n)+n)%n], B = u => at(u), Rr = v => at(s+v), Tt = u => at(2*s+mm-u), L = v => at(n - v);
+  const coons = (u,v) => { const U=u/s, V=v/mm, b=B(u), tt=Tt(u), l=L(v), rr=Rr(v), p00=B(0),p10=B(s),p01=Tt(0),p11=Tt(s);
+    const f = i => b[i]*(1-V)+tt[i]*V + l[i]*(1-U)+rr[i]*U - (p00[i]*(1-U)*(1-V)+p10[i]*U*(1-V)+p01[i]*(1-U)*V+p11[i]*U*V); return [f(0),f(1)]; };
+  const prog = this.playing ? clamp(((t*0.5+1)%1.6),0,1) : 1;
+  g.beginPath(); P.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.closePath(); g.fillStyle=alpha(C.key,.12*prog); g.fill(); g.strokeStyle=C.key; g.lineWidth=2.5; g.stroke();
+  const lines = []; for (let u=1;u<s;u++){ const L2=[]; for(let v=0;v<=mm;v++) L2.push(coons(u,v)); lines.push(L2); } for (let v=1;v<mm;v++){ const L2=[]; for(let u=0;u<=s;u++) L2.push(coons(u,v)); lines.push(L2); }
+  lines.slice(0,Math.floor(prog*lines.length+0.001)).forEach(Lp=>line(g,Lp,C.ink,1.3));
+  P.forEach((p,i)=>dot(g,p[0],p[1],3.5,(i<=s)?C.x:C.key)); text(g,`span ${s} × ${mm}`,12,14,C.ink,11); text(g,'червено: страната със span',12,h-12,C.muted,10); } };
+
+FIG.subdiv = { init(){ this.l = bindRange('sd-l'); }, draw(g,w,h,t){
+  const L = this.playing ? Math.floor((t*0.7+2)%5) : +this.l.value; if (this.playing){ this.l.value=L; $('sd-l-o').textContent=L; }
+  const cx=w/2, cy=h/2, s=Math.min(w,h)*0.36;
+  let P = [[-1,-.8],[-.2,-1],[1,-.7],[.8,.2],[1,.9],[-.1,.7],[-1,.9],[-.7,0]].map(([x,y])=>[cx+x*s,cy+y*s]);
+  line(g,[...P,P[0]],alpha(C.muted,.7),1.2,[5,4]); P.forEach(p=>dot(g,p[0],p[1],3,C.muted));
+  for (let i=0;i<L;i++){ const Q=[]; P.forEach((p,j)=>{ const q=P[(j+1)%P.length]; Q.push([.75*p[0]+.25*q[0],.75*p[1]+.25*q[1]],[.25*p[0]+.75*q[0],.25*p[1]+.75*q[1]]); }); P=Q; }
+  g.beginPath(); P.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.closePath(); g.fillStyle=alpha(C.z,.15); g.fill(); g.strokeStyle=C.z; g.lineWidth=2.2; g.stroke();
+  if (L<3) P.forEach(p=>dot(g,p[0],p[1],2,C.z)); text(g,`Levels ${L}`,12,14,C.ink,11); text(g,'пунктир: мрежата · синьо: резултатът',12,h-12,C.muted,10); } };
+
+FIG.lathe = { draw(g,w,h,t){
+  const prof = [[0,.32],[.09,.42],[.23,.5],[.38,.46],[.55,.3],[.64,.21],[.74,.24],[.83,.31],[.92,.3],[1,.2]];
+  const N = prof.length, phase = this.playing ? (t*1.1+N)%(N+3) : N+1, k = Math.min(N, Math.floor(phase)+1), sub = this.playing ? phase%1 : 1;
+  const H = h*0.82, base = h*0.92, cx = w*0.38, W = H*0.5;
+  for (let i=0;i<k;i++){ const [z,r] = prof[i], last = (i===k-1 && k<=N && this.playing); let zz = z, rr = r;
+    if (last && i>0){ const [z0,r0] = prof[i-1]; zz = lerp(z0,z,clamp(sub*2,0,1)); rr = sub<.5 ? r0 : lerp(r0,r,(sub-.5)*2); }
+    const y = base - zz*H; g.beginPath(); g.ellipse(cx,y,rr*W,rr*W*0.22,0,0,7); g.strokeStyle = last ? C.key : C.ink; g.lineWidth = last?2.2:1.2; g.stroke();
+    if (i>0){ const [z0,r0] = prof[i-1], y0 = base - z0*H; line(g,[[cx-r0*W,y0],[cx-rr*W,y]],C.muted,1); line(g,[[cx+r0*W,y0],[cx+rr*W,y]],C.muted,1); } }
+  $('la-o').textContent = `пръстен ${Math.min(k,N)}/${N} · ${!this.playing ? 'готово' : (sub<.5 ? 'E  Z  ↑' : 'S  ↔')}`;
+  const px = w*0.78; text(g,'профил',px,h*0.08,C.muted,10,'center');
+  g.beginPath(); prof.forEach(([z,r],i)=>{ const x = px - 20 + r*60, y = base - z*H; i?g.lineTo(x,y):g.moveTo(x,y); }); g.strokeStyle=C.key; g.lineWidth=2; g.stroke();
+  line(g,[[px-20,base],[px-20,base-H]],alpha(C.muted,.6),1,[3,3]); } };
+
+FIG.parent = { on:true, init(){ toggle(['pa-on','pa-off'], id=> this.on = id==='pa-on'); }, draw(g,w,h,t){
+  const ox = w*0.08; text(g,'▾ Pin',ox,h*0.2,C.ink,12); text(g,'▾ Eye',ox+14,h*0.32,this.on?C.ink:C.muted,12); text(g,'Pupil',ox+28,h*0.44,this.on?C.ink:C.muted,12);
+  if (!this.on) text(g,'(отделни)',ox,h*0.56,C.muted,10);
+  const dx = (this.playing ? Math.sin(t*1.2) : 0.4)*w*0.12, rot = (this.playing ? Math.sin(t*1.2+1) : 0.3)*0.25, cx = w*0.62, base = h*0.92, H = h*0.78;
+  g.save(); g.translate(cx+dx, base); g.rotate(rot); pinPath(g,0,0,H); g.fillStyle=alpha(C.muted,.25); g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.5; g.stroke();
+  if (this.on) [-1,1].forEach(sd=>{ dot(g,sd*H*0.06,-H*0.86,H*0.045,C.surface); g.strokeStyle=C.ink; g.lineWidth=1.2; g.stroke(); dot(g,sd*H*0.06+H*0.012,-H*0.86,H*0.02,C.ink); });
+  g.restore();
+  if (!this.on) [-1,1].forEach(sd=>{ dot(g,cx+sd*H*0.06,base-H*0.86,H*0.045,C.surface); g.strokeStyle=C.x; g.lineWidth=1.5; g.stroke(); dot(g,cx+sd*H*0.06+H*0.012,base-H*0.86,H*0.02,C.ink); });
+  line(g,[[w*0.4,base],[w*0.95,base]],C.line,1.5); } };
+
+FIG.passe = { init(){ this.a = bindRange('pp-a', v=>v.toFixed(2)); }, draw(g,w,h,t){
+  const a = this.playing ? (Math.sin(t*0.9)+1)/2 : +this.a.value; if (this.playing){ this.a.value=a; $('pp-a-o').textContent=a.toFixed(2); }
+  g.fillStyle=C.sunk; g.fillRect(0,0,w,h); line(g,[[0,h*0.68],[w,h*0.68]],C.line,1.5);
+  [.28,.38,.62,.72].forEach(x=>{ pinPath(g,w*x,h*0.68,h*0.3); g.fillStyle=C.surface; g.fill(); g.strokeStyle=C.muted; g.lineWidth=1; g.stroke(); });
+  dot(g,w*0.15,h*0.6,h*0.08,C.z);
+  const fx=w*0.22, fy=h*0.18, fw=w*0.56, fh=fw*9/16;
+  g.fillStyle = `rgba(0,0,0,${a*0.92})`; g.beginPath(); g.rect(0,0,w,h); g.rect(fx+fw,fy,-fw,fh); g.fill('evenodd');
+  g.strokeStyle=C.key; g.lineWidth=1.5; g.strokeRect(fx,fy,fw,fh); text(g,'Camera',fx+6,fy-9,C.key,10); } };
+
+FIG.slots = { draw(g,w,h,t){
+  const T = this.playing ? (t*0.6)%4 : 3.5, rows = 12, cx = w*0.62, base = h*0.94, H = h*0.86, stage = T<1 ? 0 : T<2 ? 1 : T<2.8 ? 2 : 3, RED = '#d42a2a';
+  const lx = 12, ly = 18, lw = w*0.32; g.fillStyle=C.sunk; g.fillRect(lx,ly,lw,58);
+  [['Pin',C.surface],['Stripe',RED]].forEach(([n,c],i)=>{ if (i===1 && stage<2) return; const y = ly+16+i*24;
+    if ((i===1&&stage>=2)||(i===0&&stage<2)){ g.fillStyle=alpha(C.z,.3); g.fillRect(lx+2,y-10,lw-4,20); }
+    dot(g,lx+14,y,6,c); g.strokeStyle=C.muted; g.lineWidth=1; g.stroke(); text(g,n,lx+28,y,C.ink,11); });
+  if (stage>=2){ g.fillStyle = stage===3 ? C.key : C.sunk; g.fillRect(lx, ly+66, 70, 20); text(g,'Assign',lx+35,ly+76,stage===3?C.surface:C.ink,11,'center'); }
+  g.save(); pinPath(g,cx,base,H); g.clip();
+  for (let i=0;i<rows;i++){ const rh = H*1.06/rows, y0 = base - (i+1)*rh, stripe = i===6 || i===7;
+    g.fillStyle = stripe && stage>=1 ? (stage===3 ? RED : alpha(C.key,.55)) : C.surface; g.fillRect(cx-H*0.3,y0,H*0.6,rh); line(g,[[cx-H*0.3,y0],[cx+H*0.3,y0]],alpha(C.muted,.5),.8); }
+  g.restore(); pinPath(g,cx,base,H); g.strokeStyle=C.ink; g.lineWidth=1.5; g.stroke();
+  $('sl-o').textContent = ['лицата на кеглата','Alt + клик: пояс','+ слот Stripe, червен','Assign'][stage]; } };
+
+FIG.lens = { init(){ this.f = bindRange('ln-f', v=>v+'mm'); }, draw(g,w,h,t){
+  const f = this.playing ? 18 + (Math.sin(t*0.7)+1)/2*117 : +this.f.value; if (this.playing){ this.f.value=Math.round(f); $('ln-f-o').textContent=Math.round(f)+'mm'; }
+  const topH = h*0.45, dist = f*0.06, sc = topH/(dist + 2.5), cx = w*0.08, cy = topH*0.55, subjX = cx + dist*sc, fov = 2*Math.atan(18/f);
+  line(g,[[cx,cy],[cx+(dist+2.4)*sc, cy - Math.tan(fov/2)*(dist+2.4)*sc]],alpha(C.key,.6),1); line(g,[[cx,cy],[cx+(dist+2.4)*sc, cy + Math.tan(fov/2)*(dist+2.4)*sc]],alpha(C.key,.6),1);
+  g.fillStyle=C.key; g.fillRect(cx-8,cy-6,10,12);
+  [-1,0,1].forEach((d,i)=> dot(g, subjX + d*sc*0.9, cy + (i-1)*sc*0.35, 5, [C.x,C.ink,C.z][i]));
+  text(g, f.toFixed(0)+' mm · '+dist.toFixed(1)+' m', w-8, 12, C.ink, 10, 'right');
+  const iy = topH + 10, ih = h - iy - 6, base = iy + ih*0.85; g.fillStyle=C.sunk; g.fillRect(0,iy,w,ih);
+  [-1,0,1].forEach((d,i)=>{ const z = dist + d*0.9, size = (dist/z)*ih*0.55, x = w/2 + (i-1)*(dist/z)*w*0.16; pinPath(g, x, base - (1 - dist/z)*ih*0.12, size); g.fillStyle=alpha([C.x,C.ink,C.z][i],.3); g.fill(); g.strokeStyle=[C.x,C.ink,C.z][i]; g.lineWidth=1.5; g.stroke(); }); } };
+
+FIG.dof = { init(){ this.f = bindRange('df-f', v=> (0.8*Math.pow(20,v)).toFixed(1)); }, draw(g,w,h,t){
+  const v = this.playing ? (Math.sin(t*0.8)+1)/2 : +this.f.value, N = 0.8*Math.pow(20,v); if (this.playing){ this.f.value=v; $('df-f-o').textContent=N.toFixed(1); }
+  g.fillStyle=C.sunk; g.fillRect(0,0,w,h);
+  [[.75,.62,14],[.5,.92,8],[.25,1.25,4]].forEach(([x,s,z])=>{ const blur = Math.abs(1/z - 1/8)*60/N; g.save(); g.filter = `blur(${blur.toFixed(1)}px)`; pinPath(g,w*x,h*0.9,h*0.62*s); g.fillStyle=C.surface; g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.5; g.stroke(); dot(g,w*x-h*0.03*s,h*0.9-h*0.62*s*0.86,h*0.02*s,C.ink); dot(g,w*x+h*0.03*s,h*0.9-h*0.62*s*0.86,h*0.02*s,C.ink); g.restore(); });
+  text(g,'F-Stop '+N.toFixed(1),10,14,C.ink,11); text(g,'фокус',w*0.5,h*0.97,C.key,10,'center'); } };
+
+FIG.interp = { draw(g,w,h,t){
+  const F = 24, fr = this.playing ? (t*14)%(F+6) : 16, keys = [[1,0],[12,1],[20,0.35]];
+  const val = (m,f) => { if (f<=1) return 0; if (f>=20) return .35; const i = f<12?0:1, [f0,v0]=keys[i], [f1,v1]=keys[i+1], u=(f-f0)/(f1-f0); return m==='c' ? v0 : m==='l' ? lerp(v0,v1,u) : lerp(v0,v1,u*u*(3-2*u)); };
+  const rh = h/3; [['Constant','c',C.x],['Linear','l',C.y],['Bézier','b',C.z]].forEach(([name,m,col],r)=>{ const y0 = r*rh, gx = w*0.04, gw = w*0.5, gy = y0+rh*0.2, gh = rh*0.6;
+    text(g,name,gx,y0+10,col,11); line(g,[[gx,gy+gh],[gx+gw,gy+gh]],C.line,1);
+    const pts = []; for (let f=1; f<=F; f+=0.25) pts.push([gx+(f-1)/(F-1)*gw, gy+gh - val(m,f)*gh]); line(g,pts,col,2);
+    keys.forEach(([f,v])=>key(g,gx+(f-1)/(F-1)*gw, gy+gh - v*gh, 5, C.sel, C.ink));
+    const px = gx + (Math.min(fr,F)-1)/(F-1)*gw; line(g,[[px,gy-4],[px,gy+gh+4]],C.z,1.5);
+    dot(g,w*0.6 + val(m,Math.min(fr,F))*w*0.36,y0+rh*0.55,rh*0.16,col); line(g,[[w*0.58,y0+rh*0.72],[w*0.98,y0+rh*0.72]],C.line,1); });
+  text(g,'кадър '+Math.min(Math.floor(fr),F),w-6,10,C.ink,10,'right'); } };
+
+FIG.overshoot = { draw(g,w,h,t){
+  const K = [[1,-1],[20,0.08],[25,-0.04],[29,0.015],[33,0]], F = 40, fr = this.playing ? (t*16)%(F+8) : 26;
+  const val = f => { if (f<=1) return -1; for (let i=0;i<K.length-1;i++){ const [f0,v0]=K[i],[f1,v1]=K[i+1]; if (f<=f1){ const u=(f-f0)/(f1-f0); return lerp(v0,v1,u*u*(3-2*u)); } } return 0; };
+  const top = h*0.42, R = top*0.32, target = w*0.62, span = w*0.55;
+  line(g,[[0,top],[w,top]],C.line,1.5); line(g,[[target,top-R*2.6],[target,top+4]],alpha(C.key,.5),1,[4,4]);
+  const v = val(Math.min(fr,F)), bx = target + v*span; g.save(); g.translate(bx, top-R); g.rotate(v*span/R); g.beginPath(); g.arc(0,0,R,0,7); g.fillStyle=C.z; g.fill(); dot(g,R*0.3,-R*0.35,R*0.14,C.surface); dot(g,-R*0.15,-R*0.5,R*0.12,C.surface); dot(g,R*0.05,-R*0.05,R*0.13,C.surface); g.restore();
+  const gy = h*0.55, gh = h*0.38, gx = 10, gw = w-20, Y = v2 => gy + gh*0.5 - v2*gh*1.6; line(g,[[gx,Y(0)],[gx+gw,Y(0)]],alpha(C.key,.4),1,[4,4]);
+  const pts=[]; for(let f=1;f<=F;f+=.25) pts.push([gx+(f-1)/(F-1)*gw, Y(Math.max(val(f),-0.28))]); line(g,pts,C.y,2);
+  K.forEach(([f,v2])=>key(g,gx+(f-1)/(F-1)*gw,Y(Math.max(v2,-0.28)),5,C.sel,C.ink));
+  const px = gx+(Math.min(fr,F)-1)/(F-1)*gw; line(g,[[px,gy],[px,gy+gh]],C.z,1.5); text(g,'Y Location',gx,gy+4,C.y,10); } };
+
+FIG.pivot = { mode:'i', init(){ toggle(['pv-m','pv-i'], id=> this.mode = id==='pv-m'?'m':'i'); }, draw(g,w,h,t){
+  const s = this.playing ? 0.1 + 0.9*(1 - Math.max(0, Math.sin(t*2.2))**6) : 0.3, E = [[.25,.42],[.5,.62],[.75,.36]], r = Math.min(w,h)*0.12, my = h*(E.reduce((a,e)=>a+e[1],0)/3);
+  if (this.mode==='m') line(g,[[0,my],[w,my]],alpha(C.key,.6),1,[4,4]);
+  E.forEach(([x,y])=>{ const cy = this.mode==='m' ? my + (h*y - my)*s : h*y;
+    g.save(); g.globalAlpha=.4; g.beginPath(); g.ellipse(w*x,h*y,r,r,0,0,7); g.strokeStyle=C.muted; g.setLineDash([3,3]); g.stroke(); g.restore(); g.setLineDash([]);
+    g.beginPath(); g.ellipse(w*x,cy,r,r*s,0,0,7); g.fillStyle=C.surface; g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.5; g.stroke(); dot(g,w*x,cy,r*0.18,C.ink); });
+  text(g, this.mode==='m' ? 'Median Point: към общия център' : 'Individual Origins: всяко около себе си', 10, 14, C.ink, 10); } };
+
+FIG.offset = { init(){ this.o = bindRange('of-o', v=> v+' кадъра'); }, draw(g,w,h,t){
+  const off = +this.o.value, F = 30, fr = this.playing ? (t*12)%F : 14, rh = h/3, tlx = w*0.3, tlw = w*0.66;
+  for (let i=0;i<3;i++){ const y = rh*i + rh/2, k0 = 8 + i*off, closed = fr>=k0 && fr<k0+3 ? 1 - Math.sin((fr-k0)/3*Math.PI)*0.92 : 1, cx = w*0.13;
+    g.beginPath(); g.ellipse(cx-12,y,9,9*closed,0,0,7); g.ellipse(cx+12,y,9,9*closed,0,0,7); g.fillStyle=C.surface; g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.3; g.stroke();
+    line(g,[[tlx,y],[tlx+tlw,y]],C.line,1); [k0,k0+1.5,k0+3].forEach(k=>key(g,tlx+k/F*tlw,y,6,C.sel,C.ink)); }
+  const px = tlx + fr/F*tlw; line(g,[[px,4],[px,h-4]],C.z,1.5); } };
+
+FIG.squash = { vol:true, init(){ $('sq-v').addEventListener('click',()=>{ this.vol = !this.vol; $('sq-v').setAttribute('aria-pressed', this.vol); }); }, draw(g,w,h,t){
+  const T = this.playing ? (t*0.9)%3 : 1.1; let sz=1, lean=0, z=0, phase='';
+  if (T<0.6){ const u=T/0.6; sz = 1 - 0.25*ease(u); lean = -0.2*ease(u); phase='подготовка'; }
+  else if (T<1.0){ const u=(T-0.6)/0.4; sz = lerp(0.75,1.4,ease(u)); lean = lerp(-0.2,0.15,u); z = u*0.2; phase='stretch'; }
+  else if (T<1.8){ const u=(T-1.0)/0.8; z = 0.2 + Math.sin(u*Math.PI)*0.75 - u*0.2; sz = lerp(1.4,1,clamp(u*2,0,1)); lean = 0.15*(1-u); phase='дъга'; }
+  else if (T<2.2){ const u=(T-1.8)/0.4; sz = 1 - 0.3*Math.sin(u*Math.PI); phase='squash'; }
+  else { phase='покой'; }
+  const sx = this.vol ? 1/Math.sqrt(sz) : 1, base = h*0.94 - z*h*0.35, H = h*0.5, cx = w*0.42;
+  line(g,[[0,h*0.94],[w*0.75,h*0.94]],C.line,1.5);
+  g.save(); g.translate(cx,base); g.rotate(lean); pinPath(g,0,0,H,sx,sz); g.fillStyle=alpha(C.muted,.3); g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.5; g.stroke(); g.restore();
+  const vx = w*0.8; [['X',C.x,sx],['Y',C.y,sx],['Z',C.z,sz]].forEach(([l,c,v],i)=>{ text(g,l,vx,h*(0.25+i*0.1),c,11,'center'); text(g,v.toFixed(2),vx+40,h*(0.25+i*0.1),C.ink,11,'center'); });
+  text(g,'X·Y·Z',vx+10,h*0.6,C.muted,10,'center'); text(g,(sx*sx*sz).toFixed(2),vx+10,h*0.68,this.vol?C.y:C.x,16,'center'); $('sq-o').textContent = phase; } };
+
+FIG.graph = { draw(g,w,h,t){
+  const T = this.playing ? (t*0.55)%7 : 6.2, rows = ['X Location','Y Location','Z Location','Y Rotation','Z Scale'], cols=[C.x,C.y,C.z,C.y,C.z], keys = [3,8,12,16,19], F = 22, lx = w*0.32, lw = w*0.64; let cap='';
+  if (T < 4.3){ const half = h/2-8;
+    [['Pin',0],['Pin.001',half+16]].forEach(([name,oy],o)=>{ text(g,'▾ '+name,8,oy+10,C.ink,11);
+      rows.forEach((r,i)=>{ const y = oy + 26 + i*(half-26)/5, sel = o===0 && T>0.8 && i>0;
+        if (sel){ g.fillStyle=alpha(C.key,.15); g.fillRect(lx-4,y-7,lw+8,14); } text(g,r,16,y,cols[i],10);
+        if (o===0 || (T>2.6 && i>0)) keys.forEach(k=>key(g,lx+k/F*lw,y,5,(sel||(o===1&&T>2.6))?C.key:C.sel,C.ink)); }); });
+    cap = T<0.8 ? 'B: кутия' : T<1.8 ? 'без X Location → Ctrl C' : T<2.6 ? 'Pin.001: I, после A' : 'Ctrl V: X остава празно';
+    if (T>0.8 && T<1.8){ g.strokeStyle=C.key; g.setLineDash([4,3]); g.strokeRect(lx-8, 26+(h/2-34)/5-8, lw+16, (h/2-34)*4/5+8); g.setLineDash([]); }
+  } else { const u = clamp((T-5)/1.2,0,1), off = ease(u)*0.28;
+    text(g,'Graph Editor · Y Location',8,10,C.ink,11);
+    const gx = 10, gw = w-20, gy = 24, gh = h-34, vals = [0,.25,.5,.32,.6], Y = v => gy + gh*0.85 - (v+off)*gh*0.9;
+    if (u>0) line(g,keys.map((k,i)=>[gx+k/F*gw, gy + gh*0.85 - vals[i]*gh*0.9]),alpha(C.y,.35),1.5,[4,4]);
+    const pts = keys.map((k,i)=>[gx+k/F*gw, Y(vals[i])]); line(g,pts,C.y,2.2); pts.forEach(p=>key(g,p[0],p[1],5,C.key,C.ink));
+    cap = T<5 ? 'Ctrl Tab → Graph Editor' : 'G Y: кривата се мести, формата остава'; }
+  $('gr-o').textContent = cap; } };
+
+FIG.retime = { init(){ this.s = bindRange('rt-s', v=>v.toFixed(2)); }, draw(g,w,h,t){
+  const s = this.playing ? 0.7 + 0.3*Math.sin(t*1.1) : +this.s.value; if (this.playing){ this.s.value=s; $('rt-s-o').textContent=s.toFixed(2); }
+  const F = 40, ph = 10, K0 = [10,16,22,28,34], gx=10, gw=w-20, X = f => gx + f/F*gw, rows = [h*0.25, h*0.45];
+  text(g,'преди',gx,rows[0]-16,C.muted,10); text(g,'S '+s.toFixed(2),gx,rows[1]-16,C.ink,10);
+  rows.forEach((y,i)=>{ line(g,[[gx,y],[gx+gw,y]],C.line,1); K0.forEach(k=> key(g,X(i ? ph + (k-ph)*s : k),y,6,i?C.key:C.sel,C.ink)); });
+  line(g,[[X(ph),h*0.1],[X(ph),h*0.55]],C.z,1.5);
+  const dur = (K0[4]-ph)*s; text(g,`${dur.toFixed(0)} кадъра = ${(dur/24).toFixed(2)} s`,gx,h*0.66,C.ink,11);
+  const T = this.playing ? (t*24)%(dur+12) : dur*0.5, u = clamp(T/dur,0,1), by = h*0.85; line(g,[[gx,by+12],[gx+gw,by+12]],C.line,1); dot(g,gx + 20 + ease(u)*(gw-40),by,11,C.z); } };
+
+FIG.shake = { draw(g,w,h,t){
+  const K = [[0,0],[3,.6],[6,-.45],[9,.28],[12,-.12],[15,0]], F = 24, fr = this.playing ? (t*14)%(F+6) : 4.5;
+  const val = f => { if (f<=0||f>=15) return 0; for (let i=0;i<K.length-1;i++){ const [f0,v0]=K[i],[f1,v1]=K[i+1]; if (f<=f1){ const u=(f-f0)/(f1-f0); return lerp(v0,v1,u*u*(3-2*u)); } } return 0; };
+  const v = val(fr), top = h*0.5; g.fillStyle=C.sunk; g.fillRect(0,0,w,top);
+  g.save(); g.translate(0, v*top*0.08); line(g,[[0,top*0.78],[w,top*0.78]],C.line,1.5);
+  [.35,.5,.65].forEach(x=>{ pinPath(g,w*x,top*0.78,top*0.55); g.fillStyle=C.surface; g.fill(); g.strokeStyle=C.ink; g.lineWidth=1.2; g.stroke(); }); g.restore();
+  g.strokeStyle=C.key; g.lineWidth=2; g.strokeRect(1,1,w-2,top-2);
+  const gy = top+14, gh = h-gy-8, gx=10, gw=w-20, Y = v2 => gy+gh/2 - v2*gh*0.5;
+  line(g,[[gx,Y(0)],[gx+gw,Y(0)]],C.line,1); const pts=[]; for(let f=0;f<=F;f+=.25) pts.push([gx+f/F*gw,Y(val(f))]); line(g,pts,C.z,2);
+  K.forEach(([f,v2])=>key(g,gx+f/F*gw,Y(v2),5,C.sel,C.ink)); line(g,[[gx+Math.min(fr,F)/F*gw,gy],[gx+Math.min(fr,F)/F*gw,gy+gh]],C.z,1.5); text(g,'Z Location (камера)',gx,gy+2,C.z,10); } };
+
+const figs = [];
+document.querySelectorAll('.fig[data-w]').forEach(el => {
+  const def = FIG[el.dataset.w]; if (!def) return; const cv = el.querySelector('canvas');
+  const f = Object.assign(Object.create(def), {el, cv, g: cv.getContext('2d'), tAcc: 0, visible: false, playing: !REDUCED});
+  const pb = el.querySelector('[data-play]');
+  if (pb){ pb.setAttribute('aria-pressed', f.playing); pb.addEventListener('click', () => { f.playing = !f.playing; pb.setAttribute('aria-pressed', f.playing); f.paint(); }); }
+  el.querySelectorAll('input[type=range]').forEach(r => r.addEventListener('input', () => { if (f.playing){ f.playing=false; if (pb) pb.setAttribute('aria-pressed', false); } f.paint(); }));
+  el.querySelectorAll('.btn:not([data-play])').forEach(b => b.addEventListener('click', () => setTimeout(() => f.paint())));
+  f.size = function(){ const ar = +cv.dataset.ar || 1.6, W = cv.clientWidth; if (!W) return; const dpr = Math.min(2, devicePixelRatio||1); cv.width = W*dpr; cv.height = (W/ar)*dpr; cv.style.height = (W/ar)+'px'; this.dpr = dpr; this.W = W; this.H = W/ar; };
+  f.paint = function(){ if (!this.W) this.size(); if (!this.W) return; const g = this.g; g.setTransform(this.dpr,0,0,this.dpr,0,0); g.clearRect(0,0,this.W,this.H); g.filter='none'; this.draw(g,this.W,this.H,this.tAcc); };
+  def.init && f.init(); f.size(); f.paint(); figs.push(f);
+});
+
+/* ---------- UI tours on real Blender 5.2 screenshots ---------- */
+const IMG = { overview:'ui_overview.jpg', edit:'ui_edit.jpg', normal:'ui_normal.jpg', modifier:'ui_modifier.jpg', pin:'ui_pin.jpg', camera:'ui_camera.jpg', colornew:'ui_colornew.jpg', material:'ui_material.jpg', matedit:'ui_matedit.jpg', anim:'ui_anim.jpg', graph:'ui_graph.jpg', prefs:'ui_prefs.jpg' };
+const DIM = { prefs:[840,550] };
+const ADD = ['Mesh ▸','Curve ▸','Surface ▸','Metaball ▸','Text','Point Cloud','Volume ▸','Grease Pencil ▸','Armature','Lattice','Empty ▸','Image ▸','Light ▸','Light Probe ▸','Camera','Speaker','Force Field ▸','Collection Instance ▸'];
+const MESH = ['Plane','Cube','Circle','UV Sphere','Ico Sphere','Cylinder','Cone','Torus','Grid','Monkey'];
+const GEN = ['Array','Array (Legacy)','Bevel','Boolean','Build','Curve to Tube','Decimate','Edge Split','Mask','Mirror','Mesh to Volume','Multiresolution','Remesh','Scatter on Surface','Screw','Skin','Solidify','Subdivision Surface','Triangulate','…'];
+const MODM = ['Edit ▸','Generate ▸','Deform ▸','Normals ▸','Physics ▸'];
+const TOURS = {
+ map:{img:'overview', steps:[
+  {x:690,y:13,box:[262,3,858,20],cap:'Работни пространства: Layout, Animation…',row:0},
+  {x:110,y:38,box:[2,27,1310,22],cap:'Хедър: режим, Add, ориентация, pivot, изглед',row:1},
+  {x:30,y:180,box:[8,86,44,370],cap:'Инструменти',row:2},
+  {x:700,y:430,box:[54,52,1258,758],cap:'3D Viewport: сцената',row:3},
+  {x:1410,y:103,box:[1318,28,280,152],cap:'Outliner: всички обекти',row:4},
+  {x:1460,y:300,box:[1346,186,252,690],cap:'Properties: свойствата на избрания',row:5},
+  {x:1331,y:481,box:[1319,215,26,420],z:1.6,cap:'Разделите: Object, 🔧 Modifiers, ● Material…',row:6},
+  {x:520,y:829,box:[2,816,1310,60],cap:'Timeline: кадри, ▶, ● Auto Keying',row:7}]},
+ add:{img:'overview', steps:[
+  {x:700,y:430,key:'A',cap:'A: избери всичко',row:0},
+  {x:700,y:430,key:'X',cap:'X: изтрий',row:0},
+  {x:270,y:38,z:2.2,click:1,box:[256,28,30,20],key:'Shift A',cap:'Add (или Shift A над сцената)',row:1},
+  {x:320,y:71,z:2.2,menu:{x:262,y:50,w:170,items:ADD,hi:0},cap:'Mesh',row:1},
+  {x:480,y:132,z:2.2,click:1,menu:{x:262,y:50,w:170,items:ADD,hi:0,sub:{w:140,items:MESH,hi:3}},cap:'UV Sphere',row:1},
+  {x:120,y:755,z:2,panel:{x:14,y:690,w:220,title:'▾ Add UV Sphere',rows:[['Segments','64'],['Rings','32'],['Radius','1 m']],hi:[0,1]},cap:'Долу вляво: Segments 64, Rings 32',row:2}]},
+ edit:{img:'edit', steps:[
+  {x:100,y:38,z:2.2,key:'Tab',box:[50,28,96,20],cap:'Tab: Edit Mode',row:0},
+  {x:201,y:38,z:2.6,click:1,key:'3',box:[191,28,20,20],cap:'Режим лица',row:1},
+  {x:656,y:420,z:2,click:1,key:'Shift + клик',cap:'Избери 4 лица',row:2},
+  {x:700,y:440,z:2,key:'I',cap:'I: Inset, мишката навътре',row:3}]},
+ normal:{img:'normal', steps:[
+  {x:657,y:416,z:2,key:'Alt + клик',click:1,cap:'Alt + клик: пръстенът',row:1},
+  {x:605,y:38,z:2.4,click:1,box:[565,28,80,20],cap:'Transform Orientation',row:2},
+  {x:620,y:110,z:2.4,click:1,menu:{x:566,y:50,w:120,items:['Global','Local','Normal','Gimbal','View','Cursor','Parent'],hi:2},cap:'Normal',row:2},
+  {x:657,y:416,z:2,key:'E',cap:'E: екструдирай',row:3},
+  {x:657,y:416,z:2,key:'Z',cap:'Z: по нормалата, навътре · клик',row:3}]},
+ modifier:{img:'modifier', steps:[
+  {x:657,y:418,z:1.5,key:'десен_клик',cap:'Десен клик върху топката',row:0},
+  {x:700,y:444,z:1.5,click:1,menu:{x:667,y:428,w:180,items:['Shade Smooth','Shade Auto Smooth','Shade Flat','Convert ▸','Set Origin ▸','…'],hi:0},cap:'Shade Smooth',row:0},
+  {x:1331,y:481,z:2.4,click:1,box:[1320,470,22,22],cap:'Раздел Modifiers 🔧',row:1},
+  {x:1480,y:265,z:2.4,click:1,box:[1354,255,236,20],cap:'Add Modifier',row:1},
+  {x:1400,y:304,z:2,menu:{x:1356,y:277,w:150,items:MODM,hi:1},cap:'Generate',row:2},
+  {x:1260,y:689,z:1.6,click:1,menu:{x:1356,y:277,w:150,items:MODM,hi:1,sub:{w:170,left:1,items:GEN,hi:17}},cap:'Subdivision Surface',row:2},
+  {x:1503,y:353,z:2.6,box:[1446,343,116,20],cap:'Levels Viewport: 2',row:3}]},
+ pin:{img:'pin', steps:[
+  {x:1480,y:330,z:2.2,box:[1354,286,236,150],cap:'Subdivision, както при топката',row:0},
+  {x:1449,y:297,z:3,click:1,box:[1440,288,19,19],cap:'On Cage: гладката форма и при редакция',row:1},
+  {x:700,y:300,z:1.4,key:'Alt + клик',cap:'Пръстен ▸ S за ширината',row:2}]},
+ cam:{img:'overview', steps:[
+  {x:270,y:38,z:2.2,click:1,key:'Shift A',box:[256,28,30,20],cap:'Add',row:0},
+  {x:330,y:374,z:1.8,click:1,menu:{x:262,y:50,w:170,items:ADD,hi:14},cap:'Camera',row:0},
+  {img:'camera',x:1011,y:247,z:2.4,key:'Numpad_0',box:[999,236,24,24],cap:'Поглед през камерата (или иконата)',row:1},
+  {img:'camera',x:1300,y:190,z:2.4,click:1,key:'N',box:[1291,170,18,40],cap:'N-панел ▸ View',row:2},
+  {img:'camera',x:1120,y:150,z:2,panel:{x:1044,y:84,w:240,title:'▾ View Lock',rows:[['Lock to Object',''],['☑ Camera to View','']],hi:[1]},cap:'View Lock ▸ ☑ Camera to View',row:2},
+  {img:'camera',x:660,y:420,key:'средно_копче',cap:'Навигирай: камерата следва',row:3},
+  {img:'camera',x:1331,y:537,z:2.4,click:1,box:[1320,526,22,22],cap:'Данни на камерата 📷',row:4},
+  {img:'camera',x:1420,y:627,z:2.4,click:1,box:[1354,617,236,20],panel:{x:1354,y:640,w:236,title:'',rows:[['☑ Passepartout','1.000']],hi:[0]},cap:'Viewport Display ▸ Passepartout 1',row:4}]},
+ dup:{img:'overview', steps:[
+  {x:1409,y:163,z:2.2,key:'десен_клик',cap:'Outliner: десен клик върху Pin',row:0},
+  {x:1460,y:298,z:2.2,click:1,menu:{x:1380,y:172,w:200,items:['Copy','Paste','Delete','Delete Hierarchy','Select','Select Hierarchy','Deselect','…'],hi:5},cap:'Select Hierarchy',row:0},
+  {x:772,y:380,z:1.4,key:'Shift D',cap:'Shift D: копие',row:1},
+  {x:900,y:350,z:1.4,key:'Y',click:1,cap:'Y: само по оста Y · клик',row:1}]},
+ color1:{img:'colornew', steps:[
+  {x:1256,y:38,z:2.6,click:1,key:'Z',box:[1246,28,20,20],cap:'Material Preview',row:0},
+  {x:900,y:365,z:1.4,click:1,cap:'Избери обекта',row:1},
+  {x:1331,y:621,z:2.6,click:1,box:[1320,610,22,22],cap:'Раздел Material',row:2},
+  {x:1495,y:350,z:2.6,click:1,box:[1382,340,206,20],cap:'+ New',row:3}]},
+ color2:{img:'material', steps:[
+  {x:1512,y:516,z:2.4,click:1,box:[1465,506,96,20],cap:'Base Color',row:0},
+  {x:1400,y:620,z:1.9,picker:{x:1290,y:528},cap:'Кръгът: тон · плъзгачът: яркост',row:1},
+  {x:1368,y:390,z:2.4,click:1,box:[1356,380,24,20],menu:{x:1356,y:402,w:160,items:['Ball','Ground','Eye','Pin','Pupil','Stripe'],hi:3},cap:'▾ същият материал за друг обект',row:2}]},
+ color3:{img:'matedit', steps:[
+  {x:100,y:38,z:2.2,key:'Tab',box:[50,28,96,20],cap:'Edit Mode, лица',row:0},
+  {x:656,y:380,z:1.8,click:1,key:'Alt + клик',cap:'Пояс лица на шията',row:0},
+  {x:1580,y:265,z:2.6,click:1,box:[1571,256,18,18],cap:'+ нов слот',row:1},
+  {x:1450,y:290,z:2.6,box:[1360,281,196,18],cap:'Слот Stripe ▸ New',row:1},
+  {x:1513,y:540,z:2.6,click:1,box:[1465,530,96,20],cap:'Base Color: червено',row:1},
+  {x:1393,y:415,z:2.6,click:1,box:[1355,406,77,18],cap:'Assign',row:2}]},
+ sun:{img:'overview', steps:[
+  {x:270,y:38,z:2.2,click:1,key:'Shift A',box:[256,28,30,20],cap:'Add',row:0},
+  {x:320,y:330,z:1.8,menu:{x:262,y:50,w:170,items:ADD,hi:12},cap:'Light',row:0},
+  {x:470,y:352,z:1.8,click:1,menu:{x:262,y:50,w:170,items:ADD,hi:12,sub:{w:110,items:['Point','Sun','Spot','Area'],hi:1}},cap:'Sun',row:0},
+  {x:700,y:430,key:'R',cap:'R: посоката',row:1}]},
+ lens:{img:'camera', steps:[
+  {x:1331,y:537,z:2.4,click:1,box:[1320,526,22,22],cap:'Данни на камерата 📷',row:0},
+  {x:1503,y:361,z:2.6,box:[1446,351,116,20],cap:'Focal Length',row:0}]},
+ dof:{img:'camera', steps:[
+  {x:1380,y:519,z:2.6,click:1,box:[1372,511,16,16],cap:'☑ Depth of Field',row:0},
+  {x:1426,y:519,z:2.4,click:1,panel:{x:1354,y:532,w:236,title:'',rows:[['Focus on Object','Pin.001'],['F-Stop','2.8']],hi:[0]},cap:'Focus on Object',row:1},
+  {x:1503,y:574,z:2.4,panel:{x:1354,y:532,w:236,title:'',rows:[['Focus on Object','Pin.001'],['F-Stop','2.8']],hi:[1]},cap:'F-Stop',row:2}]},
+ anim:{img:'anim', steps:[
+  {x:725,y:13,z:2.4,click:1,box:[690,3,70,20],cap:'Раздел Animation',row:0},
+  {x:600,y:700,box:[2,522,1310,354],cap:'Dope Sheet: ред = обект, точка = ключ',row:1},
+  {x:1070,y:533,z:2.6,click:1,box:[1060,523,20,20],cap:'Only Show Selected: изключено',row:2},
+  {x:518,y:864,z:2.6,click:1,box:[508,854,20,20],cap:'● Auto Keying',row:3},
+  {x:382,y:557,z:2.4,box:[368,548,28,18],cap:'Текущият кадър',row:4}]},
+ prefs:{img:'prefs', steps:[
+  {x:80,y:154,z:1.6,click:1,box:[9,142,142,24],cap:'Edit ▸ Preferences ▸ Animation',row:0},
+  {x:590,y:420,z:1.8,click:1,box:[460,410,264,20],cap:'Default Interpolation',row:1},
+  {x:540,y:282,z:1.8,click:1,menu:{x:460,y:266,w:200,items:['Constant','Linear','Bézier','Sine','Quadratic','…'],hi:0},cap:'Constant',row:1},
+  {x:466,y:508,z:1.8,click:1,box:[458,499,240,18],cap:'☑ Only Show Selected F-Curve Keyframes',row:2},
+  {x:590,y:160,z:1.6,box:[460,113,264,98],cap:'Default Key Channels: какво записва I',row:3}]},
+ ball:{img:'anim', steps:[
+  {x:518,y:864,z:2.4,box:[508,854,20,20],cap:'Auto Keying е включен',row:0},
+  {x:696,y:270,z:1.2,key:'G Y',cap:'Кадър 1: топката извън кадър',row:0},
+  {x:382,y:557,z:2,key:'→',cap:'Кадър 20',row:1},
+  {x:696,y:270,z:1.2,key:'G Y',cap:'Топката в кадър',row:1},
+  {x:640,y:666,z:1.8,key:'T',menu:{x:600,y:606,w:150,items:['Constant','Linear','Bézier','…'],hi:2},cap:'T ▸ Bézier',row:3}]},
+ pivot:{img:'overview', steps:[
+  {x:772,y:345,z:1.6,key:'I',cap:'I: ключ',row:0},
+  {x:632,y:38,z:2.6,click:1,box:[618,28,28,20],cap:'Pivot Point',row:1},
+  {x:700,y:110,z:2.4,click:1,menu:{x:618,y:50,w:180,items:['Bounding Box Center','3D Cursor','Individual Origins','Median Point','Active Element'],hi:2},cap:'Individual Origins',row:1},
+  {x:772,y:345,z:1.6,key:'S Z',cap:'S, Z: мигване',row:2}]},
+ copy:{img:'anim', steps:[
+  {x:740,y:731,z:2,key:'B',box:[735,722,255,18],cap:'B: кутия около ключовете',row:0},
+  {x:990,y:740,z:2,key:'Ctrl C',cap:'Ctrl C',row:0},
+  {x:760,y:760,z:2,key:'Ctrl V',click:1,cap:'Втората кегла: A, Ctrl V',row:1},
+  {img:'graph',x:600,y:700,key:'Ctrl Tab',cap:'Graph Editor',row:2},
+  {img:'graph',x:640,y:620,z:1.5,key:'G Y',cap:'G Y: цялата крива',row:3}]},
+ filter:{img:'anim', steps:[
+  {x:60,y:557,z:2.6,click:1,key:'Ctrl F',box:[6,548,192,18],cap:'Търсене в каналите',row:0},
+  {x:60,y:557,z:2.6,type:'scale',cap:'„scale“',row:1},
+  {x:300,y:700,z:1.2,key:'B',cap:'B · Shift D',row:2}]}
+};
+
+const NS = 'http://www.w3.org/2000/svg';
+const el = (n, a={}, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const UI = {bg:'#1c1c1c', line:'#3d3d3d', txt:'#e5e5e5', hi:'#4772b3', acc:'#f39a2e', font:'Segoe UI,Arial,sans-serif'};
+const label = (p, x, y, s, a={}) => { const t = el('text', Object.assign({x, y, fill:UI.txt, 'font-size':13, 'font-family':UI.font}, a), p); t.textContent = s; return t; };
+function drawMenu(g, m){ const ih = 22;
+  const box = (x,y,w,items,hi) => { el('rect',{x,y,width:w,height:items.length*ih+10,rx:5,fill:UI.bg,stroke:UI.line},g);
+    items.forEach((it,i)=>{ const yy = y+5+i*ih; if (i===hi) el('rect',{x:x+3,y:yy,width:w-6,height:ih,rx:3,fill:UI.hi},g);
+      label(g, x+12, yy+15, it.replace(' ▸',''));
+      if (it.endsWith('▸')) label(g, x+w-14, yy+15, '▸', {fill:'#999'}); }); };
+  box(m.x,m.y,m.w,m.items,m.hi);
+  if (m.sub){ const sy = m.y + m.hi*ih, sx = m.sub.left ? m.x - m.sub.w + 2 : m.x + m.w - 2; box(sx,sy,m.sub.w,m.sub.items,m.sub.hi); } }
+function drawPanel(g, p){ const rh = 24, top = p.title ? 26 : 6, h = top + p.rows.length*rh + 6;
+  el('rect',{x:p.x,y:p.y,width:p.w,height:h,rx:5,fill:'#2b2b2b',stroke:UI.acc,'stroke-width':1.5},g);
+  if (p.title) label(g, p.x+10, p.y+18, p.title, {'font-weight':600});
+  p.rows.forEach(([a,b],i)=>{ const y = p.y + top + i*rh, on = (p.hi||[]).includes(i);
+    if (b){ el('rect',{x:p.x+p.w*0.48,y:y+2,width:p.w*0.48,height:rh-5,rx:3,fill:on?UI.hi:'#545454'},g); label(g, p.x+p.w*0.72, y+16, b, {fill:'#fff','font-size':12,'text-anchor':'middle'}); }
+    else if (on) el('rect',{x:p.x+4,y:y+2,width:p.w-8,height:rh-5,rx:3,fill:UI.hi},g);
+    label(g, b ? p.x+p.w*0.44 : p.x+14, y+16, a, {'font-size':12,'text-anchor': b ? 'end' : 'start'}); }); }
+function drawPicker(g, p, uid){ const cx = p.x+90, cy = p.y+90, r = 72;
+  el('rect',{x:p.x,y:p.y,width:220,height:250,rx:6,fill:'#2b2b2b',stroke:UI.line},g);
+  for (let i=0;i<36;i++){ const a0 = i/36*Math.PI*2, a1 = (i+1)/36*Math.PI*2 + 0.01; el('path',{d:`M${cx},${cy} L${cx+Math.cos(a0)*r},${cy+Math.sin(a0)*r} A${r},${r} 0 0 1 ${cx+Math.cos(a1)*r},${cy+Math.sin(a1)*r} Z`,fill:`hsl(${(360-i*10)%360},85%,55%)`},g); }
+  const gr = el('radialGradient',{id:'pkw'+uid},g); el('stop',{offset:'0','stop-color':'#fff'},gr); el('stop',{offset:'1','stop-color':'#fff','stop-opacity':0},gr);
+  el('circle',{cx,cy,r,fill:`url(#pkw${uid})`},g);
+  el('circle',{cx:cx+r*0.62,cy:cy-r*0.08,r:6,fill:'none',stroke:'#fff','stroke-width':2},g);
+  const lg = el('linearGradient',{id:'pkv'+uid,x1:0,y1:0,x2:0,y2:1},g); el('stop',{offset:'0','stop-color':'#e33'},lg); el('stop',{offset:'1','stop-color':'#000'},lg);
+  el('rect',{x:p.x+186,y:p.y+18,width:16,height:144,rx:3,fill:`url(#pkv${uid})`},g); el('rect',{x:p.x+183,y:p.y+40,width:22,height:5,fill:'#fff'},g);
+  [['Hue','0.000'],['Saturation','0.850'],['Value','0.800']].forEach(([a,b],i)=>{ const y = p.y+178+i*22; el('rect',{x:p.x+10,y,width:200,height:18,rx:3,fill:'#545454'},g); label(g,p.x+18,y+13,a,{'font-size':11}); label(g,p.x+202,y+13,b,{'font-size':11,fill:'#fff','text-anchor':'end'}); }); }
+const keyHTML = k => k.split(/\s*\+\s*|\s+/).map(x => `<kbd>${x.replace(/_/g,' ')}</kbd>`).join('');
+
+const tours = [];
+document.querySelectorAll('figure.tour').forEach((fig, ti) => {
+  const id = fig.dataset.tour, def = TOURS[id]; if (!def) return;
+  fig.innerHTML = `<div class="stage"><div class="cam"><img alt=""><svg aria-hidden="true"></svg></div><div class="keycap"></div></div>
+    <div class="tbar"><button class="pv" aria-label="Предишна стъпка">‹</button><span class="cap" aria-live="polite"></span><span class="cnt"></span><button class="pp" aria-label="Пауза или пускане">❚❚</button><button class="nx" aria-label="Следваща стъпка">›</button></div>`;
+  const stage = fig.querySelector('.stage'), cam = fig.querySelector('.cam'), img = fig.querySelector('img'), svg = fig.querySelector('svg'), kc = fig.querySelector('.keycap'), cap = fig.querySelector('.cap'), cnt = fig.querySelector('.cnt'), pp = fig.querySelector('.pp');
+  const rows = [...document.querySelectorAll(`ol.do[data-tour="${id}"] > li`)];
+  const tr = { fig, def, i: 0, t: 0, playing: !REDUCED, visible: false, cur: null, imgKey: null, iw: 1600, ih: 900, z: 1 };
+  const layer = el('g',{},svg), ripple = el('circle',{r:0,fill:'none',stroke:UI.acc,'stroke-width':3,opacity:0},svg), cursorG = el('g',{},svg);
+  el('path',{d:'M0,0 L0,22 L6,17 L10,27 L14,25 L10,16 L18,16 Z',fill:'#fff',stroke:'#000','stroke-width':1.5},cursorG);
+  img.alt = 'Интерфейсът на Blender 5.2';
+  function setImg(k){ if (tr.imgKey === k) return; tr.imgKey = k; img.src = IMG[k]; const [w,h] = DIM[k] || [1600,900]; tr.iw = w; tr.ih = h; svg.setAttribute('viewBox', `0 0 ${w} ${h}`); stage.style.aspectRatio = `${w}/${h}`; }
+  function view(s){ const W = stage.clientWidth; if (!W) return; const H = W*tr.ih/tr.iw, z = s.z || 1, k = W/tr.iw;
+    const tx = clamp(W/2 - s.x*k*z, W - W*z, 0), ty = clamp(H/2 - s.y*k*z, H - H*z, 0);
+    cam.style.transform = `translate(${tx}px,${ty}px) scale(${z})`; tr.z = z; }
+  function enter(i, instant){ const s = def.steps[i]; tr.i = i; tr.t = 0; tr.from = tr.cur || {x:s.x, y:s.y}; setImg(s.img || def.img);
+    layer.innerHTML = '';
+    if (s.box) el('rect',{x:s.box[0]-3,y:s.box[1]-3,width:s.box[2]+6,height:s.box[3]+6,rx:4,fill:'rgba(243,154,46,.12)',stroke:UI.acc,'stroke-width':2.5},layer);
+    cap.textContent = s.cap || ''; cnt.textContent = `${i+1}/${def.steps.length}`;
+    kc.innerHTML = s.key ? keyHTML(s.key) : ''; kc.classList.remove('on');
+    rows.forEach((r,j)=> r.classList.toggle('on', j === s.row));
+    if (instant) cam.style.transition = 'none'; view(s); if (instant){ void cam.offsetHeight; cam.style.transition = ''; }
+    tr.extras = false; }
+  function extras(s){ if (tr.extras) return; tr.extras = true;
+    if (s.menu) drawMenu(layer, s.menu); if (s.panel) drawPanel(layer, s.panel); if (s.picker) drawPicker(layer, s.picker, ti);
+    if (s.type){ el('rect',{x:8,y:549,width:170,height:16,rx:3,fill:'#1d1d1d',stroke:UI.hi},layer); label(layer, 28, 561, s.type + '▏', {fill:'#fff','font-size':12}); }
+    if (s.key) kc.classList.add('on'); }
+  function frame(dt){ const s = def.steps[tr.i], D = (s.menu || s.panel || s.picker) ? 2.6 : 2.1;
+    tr.t += dt; const u = clamp(tr.t/0.7,0,1), e = ease(u), x = lerp(tr.from.x, s.x, e), y = lerp(tr.from.y, s.y, e); tr.cur = {x,y};
+    cursorG.setAttribute('transform', `translate(${x},${y}) scale(${1.5/(tr.z||1)*(tr.iw/1600)})`);
+    if (u >= 1){ extras(s); const rt = tr.t - 0.7;
+      if (s.click && rt < 0.5){ ripple.setAttribute('cx',s.x); ripple.setAttribute('cy',s.y); ripple.setAttribute('r', 6 + rt*60/(tr.z||1)); ripple.setAttribute('opacity', 1 - rt*2); } else ripple.setAttribute('opacity',0); }
+    if (tr.playing && tr.t > D){ const n = tr.i + 1; if (n < def.steps.length) enter(n); else if (tr.t > D + 1.2){ tr.cur = null; enter(0); } } }
+  tr.frame = frame; tr.view = () => view(def.steps[tr.i]);
+  pp.textContent = tr.playing ? '❚❚' : '▶';
+  pp.addEventListener('click', () => { tr.playing = !tr.playing; pp.textContent = tr.playing ? '❚❚' : '▶'; });
+  fig.querySelector('.nx').addEventListener('click', () => enter((tr.i+1) % def.steps.length));
+  fig.querySelector('.pv').addEventListener('click', () => enter((tr.i - 1 + def.steps.length) % def.steps.length));
+  rows.forEach((r, j) => { r.style.cursor = 'pointer'; r.addEventListener('click', () => { const k = def.steps.findIndex(s => s.row === j); if (k >= 0) enter(k); }); });
+  enter(0, true); tr.t = 0.71; frame(0); tours.push(tr);
+});
+
+document.querySelectorAll('.viz[data-tabs]').forEach(v => {
+  const btns = [...v.querySelectorAll('.tabs button')], panes = [...v.children].filter(c => c.tagName === 'FIGURE');
+  btns.forEach((b,i) => b.addEventListener('click', () => { btns.forEach((x,j)=> x.setAttribute('aria-selected', i===j)); panes.forEach((p,j)=> p.hidden = i!==j);
+    const f = figs.find(f => f.el === panes[i]); if (f){ f.size(); f.paint(); }
+    const t = tours.find(t => t.fig === panes[i]); if (t){ t.view(); t.frame(0); } }));
+});
+
+function redrawAll(){ figs.forEach(f => f.paint()); }
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { readC(); redrawAll(); });
+new MutationObserver(() => { readC(); redrawAll(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+window.addEventListener('resize', () => { figs.forEach(f => { f.size(); f.paint(); }); tours.forEach(t => t.view()); });
+if ('IntersectionObserver' in window){
+  const io = new IntersectionObserver(es => es.forEach(e => { const f = figs.find(x => x.el===e.target) || tours.find(x => x.fig===e.target); if (f) f.visible = e.isIntersecting; }));
+  figs.forEach(f => io.observe(f.el)); tours.forEach(t => io.observe(t.fig));
+} else { figs.forEach(f => f.visible = true); tours.forEach(t => t.visible = true); }
+let last = performance.now();
+function loop(now){ const dt = Math.min(0.05,(now-last)/1000); last = now;
+  figs.forEach(f => { if (f.playing && f.visible && !f.el.hidden){ f.tAcc += dt; f.paint(); } });
+  tours.forEach(t => { if (t.visible && !t.fig.hidden && (t.playing || t.t < 3)) t.frame(dt); });
+  requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+})();
+</script>
+
+</body></html>

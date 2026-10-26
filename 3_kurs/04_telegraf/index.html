@@ -1,0 +1,409 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Телеграф</title>
+<link rel="stylesheet" href="engine/lesson.css?v=12">
+<link rel="stylesheet" href="engine/skin-blender.css?v=12">
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<!--
+  Урок 04 (25.10.2026): видеото е записано от файловете в 04_Telegraf (start, _za_video/A…D, reshenie) със
+  симулирани събития; зуумът, рамките, курсорът, надписите и клавишите са вградени във видеото, затова тук
+  няма cues от тип callout и keys. Главите и стъпките са от join.py (04-telegraf_lesson.json).
+-->
+
+<script>
+window.LESSON = {
+  skin: 'blender',
+  brand: 'Урок',
+  brandIcon: '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V8M5 6h14M6 6v6M18 6l3 4" fill="none" stroke="oklch(76% .16 62)" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  title: 'Телеграф',
+  course: 'III курс · Blender',
+  task: 'Задача 04',
+  timeline: 'markers',
+  video: { src: 'video/04-telegraf.mp4?v=1', duration: 572.66 },
+  chapters: [
+    {
+      title: 'Шарнир',
+      start: 0,
+      panel: 'p-sharnir',
+      terms: [
+        { t: 'Шарнир (Origin)', d: 'Оранжевата точка на обекта (Object): около нея той се върти и мащабира.', at: 20.48 },
+        { t: '3D курсор (3D Cursor)', d: 'Помощна точка в сцената. Към нея може да се премести центърът (Origin) на обект.', at: 12.8 }
+      ],
+      keys: [
+        { k: ['R', 'Y'], a: 'Rotate по Y', d: 'завъртане с мишката или с число и Enter' },
+        { k: ['Shift', 'S'], a: 'Snap', d: 'Cursor to Selected слага 3D Cursor в маркирания обект' },
+        { k: ['Десен клик'], a: 'Cancel', d: 'отказ: връща завъртането, докато не е потвърдено' }
+      ]
+    },
+    {
+      title: 'Верига',
+      start: 33.58,
+      panel: 'p-veriga',
+      terms: [
+        { t: 'Родител и дете (Parent / Child)', d: 'Детето следва родителя, но може да се движи и само.', at: 42.82 },
+        { t: 'Йерархия (Hierarchy)', d: 'Веригата от родители и деца: Osnova → Stulb → Greda → Ramo_L и Ramo_D.', at: 90.3 }
+      ],
+      keys: [
+        { k: ['Shift', 'клик'], a: 'Extend Selection', d: 'добавя към избора; последният маркиран е активният (Active), т.е. родителят (Parent)' },
+        { k: ['Ctrl', 'P'], a: 'Set Parent To', d: 'Object (Keep Transform)' },
+        { k: ['Alt', 'P'], a: 'Clear Parent', d: 'поправя обърната връзка родител–дете' },
+        { k: ['R', 'Z'], a: 'Rotate по Z', d: 'Stulb обръща цялата глава' }
+      ]
+    },
+    {
+      title: 'Думата',
+      start: 93.52,
+      panel: 'p-duma',
+      terms: [
+        { fig: 'keys', t: 'Задържане', d: 'Два еднакви ключа (Keyframe) един след друг: знакът стои и се чете.', at: 128.88 },
+        { fig: 'frames', t: 'Кадър (Frame)', d: '24 кадъра (Frame Rate 24 fps) са 1 секунда. Знакът пристига за 12 кадъра и стои 36.' },
+        { t: 'Знак', d: 'Поза от азбуката: Rotation Y на Greda, Ramo_L и Ramo_D.', at: 112.2 }
+      ],
+      keys: [
+        { k: ['I'], a: 'Insert Keyframe', d: 'с мишката над 3D Viewport: Location, Rotation и Scale' },
+        { k: ['R', 'Y', '−135'], a: 'Rotate с число', d: 'точен ъгъл: числото се пише направо, после Enter' },
+        { k: ['↑', '↓'], a: 'Jump to Keyframe', d: 'предишен / следващ ключ' }
+      ]
+    },
+    {
+      title: 'Материали',
+      start: 159.98,
+      panel: 'p-bevel',
+      terms: [
+        { t: 'Bevel', d: 'Модификатор (Modifier), който закръгля ръбовете: тънкият ръб хваща светлина.', at: 166.22 },
+        { t: 'Image Texture', d: 'Снимка като цвят на материала. Довлича се от File Browser в Shader Editor.', at: 237.82 },
+        { t: 'Color Ramp', d: 'Превежда светло и тъмно на снимката в грапавост (Roughness) или в нов цвят (Base Color).', at: 261.18 },
+        { t: 'Bump', d: 'Релеф от снимката, без да се мени формата. Normal отива в Normal на Principled BSDF.', at: 267.94 }
+      ],
+      keys: [
+        { k: ['Ctrl', 'L'], a: 'Link/Transfer Data', d: 'Copy Modifiers, Link Materials' },
+        { k: ['Shift', 'A'], a: 'Add', d: 'нов възел (Node) в Shader Editor; името се пише направо' }
+      ]
+    },
+    {
+      title: 'Светлина',
+      start: 282.16,
+      panel: 'p-pod',
+      terms: [
+        { t: 'Voronoi Texture', d: 'Клетъчна процедурна текстура: подът и облачният фон.', at: 287.88 },
+        { t: 'Spot', d: 'Прожектор с конус. Цветният прожектор е сценична светлина срещу топлото слънце (Slunce, тип Sun).', at: 342.8 },
+        { t: 'Look', d: 'Контрастът на картината: Render Properties → Color Management.', at: 387.2 }
+      ],
+      keys: [
+        { k: ['G', 'X', '−6'], a: 'Move по X с число', d: 'точно преместване, после Enter' },
+        { k: ['N'], a: 'Sidebar', d: 'страничната лента: Location и Rotation с числа' },
+        { k: ['Numpad 0'], a: 'Active Camera', d: 'изглед през камерата' }
+      ]
+    },
+    {
+      title: 'Втора кула',
+      start: 424.58,
+      panel: 'p-kula2',
+      terms: [
+        { t: 'Select Hierarchy', d: 'Маркира обекта и всичките му деца (Children) наведнъж.', at: 427.9 },
+        { t: 'Отместване', d: 'Същата анимация, по-късно във времето: ключовете (Keyframes) се местят с G 48, 48 кадъра са 2 секунди.', at: 438.22 }
+      ],
+      keys: [
+        { k: ['Shift', 'D'], a: 'Duplicate Objects', d: 'копие; X 12 Enter: на 12 m вдясно' },
+        { k: ['A'], a: 'Select All', d: 'всички ключове, с мишката над Dope Sheet' },
+        { k: ['G', '48'], a: 'Move', d: 'отмества ключовете, после Enter' },
+        { k: ['Shift', '←'], a: 'Jump to Endpoint', d: 'към първия кадър (Start)' },
+        { k: ['Space'], a: 'Play Animation', d: 'пусни / спри' }
+      ]
+    },
+    {
+      title: 'Характер',
+      start: 452.72,
+      panel: 'p-har1',
+      terms: [
+        { fig: 'curve', t: 'Крива (F-Curve)', d: 'Стойността във времето: стръмно е бързо, хоризонтално е покой.', at: 467.2 },
+        { fig: 'ease', t: 'Back', d: 'Интерполация (Interpolation Mode), при която рамото прескача знака и се връща.', at: 470.92 },
+        { t: 'Модификатор на крива (F-Curve Modifier)', d: 'Stepped Interpolation тиктака, Noise трепери. Ключовете не се местят.', at: 480.36 }
+      ],
+      keys: [
+        { k: [']'], a: 'Select After Current Frame', d: 'ключовете след кадъра, в Dope Sheet' },
+        { k: ['Ctrl', 'Tab'], a: 'Dope Sheet ↔ Graph Editor' },
+        { k: ['Home'], a: 'Frame All', d: 'покажи всички криви' },
+        { k: ['T'], a: 'Interpolation Mode', d: 'Linear, Back, Elastic…' }
+      ]
+    },
+    {
+      title: 'Рендер',
+      start: 554.46,
+      panel: 'p-render',
+      terms: [
+        { t: 'Render Animation', d: 'Рендира всички 384 кадъра във видео. На този компютър е около 2 минути.', at: 566.3 }
+      ],
+      keys: [
+        { k: ['F12'], a: 'Render Image', d: 'пробен кадър' },
+        { k: ['Ctrl', 'F12'], a: 'Render Animation', d: 'цялата анимация' },
+        { k: ['Esc'], a: 'Cancel', d: 'спира рендера / връща изгледа' }
+      ]
+    },
+    { title: 'Задача', page: 'page-task' },
+    { title: 'Домашно', page: 'page-home' }
+  ],
+  steps: [
+    { t: 0.56, label: 'Клик върху Ramo_L' },
+    { t: 3.52, label: 'R Y около средата' },
+    { t: 7.56, label: 'Десен клик: Cancel' },
+    { t: 10.04, label: 'Клик върху Bolt_L' },
+    { t: 12.8, label: 'Cursor to Selected' },
+    { t: 17.88, label: 'Клик върху Ramo_L' },
+    { t: 20.48, label: 'Origin to 3D Cursor' },
+    { t: 27.08, label: 'R Y около Bolt_L' },
+    { t: 33.24, label: 'Ramo_D' },
+    { t: 34.06, label: 'Hide in Viewport: болтовете' },
+    { t: 37.14, label: 'Клик върху Ramo_L' },
+    { t: 40.02, label: 'Shift + клик: Greda' },
+    { t: 42.82, label: 'Ctrl P: Set Parent To' },
+    { t: 47.18, label: 'Ramo_D' },
+    { t: 55.06, label: 'Greda → Stulb' },
+    { t: 62.94, label: 'Stulb → Osnova' },
+    { t: 70.86, label: 'R Y на Greda' },
+    { t: 80.94, label: 'R Z на Stulb' },
+    { t: 90.3, label: 'Веригата в Outliner' },
+    { t: 93.96, label: 'Маркирайте трите' },
+    { t: 101.4, label: 'I: Insert Keyframe, Frame 1' },
+    { t: 104.24, label: 'Frame 24: покой' },
+    { t: 109.52, label: 'Frame 36' },
+    { t: 112.2, label: 'Знак С' },
+    { t: 118.72, label: 'Трите и I' },
+    { t: 128.88, label: 'Frame 72: задържане' },
+    { t: 134.04, label: 'Знак Ц: Greda' },
+    { t: 143.12, label: 'Ramo_D обратно' },
+    { t: 149.56, label: 'Трите и I' },
+    { t: 159.72, label: 'Останалите знаци' },
+    { t: 160.46, label: 'Клик върху Stulb' },
+    { t: 163.18, label: 'Modifiers' },
+    { t: 166.22, label: 'Add Modifier → Bevel' },
+    { t: 172.46, label: 'Amount и Segments' },
+    { t: 179.98, label: 'Маркирайте частите' },
+    { t: 192.54, label: 'Ctrl L → Copy Modifiers' },
+    { t: 197.7, label: 'Greda: Amount 0.01' },
+    { t: 203.98, label: 'Останалите тънки части' },
+    { t: 204.46, label: 'Shade Auto Smooth' },
+    { t: 226.98, label: 'Shading' },
+    { t: 232.7, label: 'New' },
+    { t: 237.82, label: 'Image Texture: довлачете снимката' },
+    { t: 242.34, label: 'Color Ramp' },
+    { t: 249.3, label: 'Bump' },
+    { t: 257.7, label: 'Color → Base Color' },
+    { t: 261.18, label: '→ Roughness' },
+    { t: 267.94, label: '→ Normal' },
+    { t: 274.7, label: 'Мазилка' },
+    { t: 276.02, label: 'Останалите материали' },
+    { t: 282.6, label: 'Teren: New' },
+    { t: 287.88, label: 'Voronoi и Color Ramp' },
+    { t: 304.72, label: 'Връзките на Teren' },
+    { t: 311.52, label: 'Scale и Detail' },
+    { t: 319.04, label: 'World' },
+    { t: 324.48, label: 'Voronoi за фона' },
+    { t: 335.32, label: 'Scale и Strength' },
+    { t: 342.8, label: 'Shift A → Spot' },
+    { t: 349.12, label: 'G и R' },
+    { t: 358.4, label: 'Light Properties' },
+    { t: 361.24, label: 'Power, Angle, Blend' },
+    { t: 372.6, label: 'Color: лилав' },
+    { t: 379.72, label: 'Look' },
+    { t: 387.2, label: 'Very High Contrast' },
+    { t: 389.76, label: 'Kamera' },
+    { t: 392.36, label: 'Kamera слиза' },
+    { t: 411.16, label: 'Rendered' },
+    { t: 417.48, label: 'Pack Resources' },
+    { t: 425.02, label: 'Десен клик върху Osnova' },
+    { t: 427.9, label: 'Select Hierarchy' },
+    { t: 430.82, label: 'Shift D, X 12' },
+    { t: 435.34, label: 'A в Dope Sheet' },
+    { t: 438.22, label: 'G 48' },
+    { t: 441.3, label: 'Play Animation' },
+    { t: 453.2, label: 'Ramo_L и Ramo_D на първата кула' },
+    { t: 458.56, label: 'Frame 12 и ]' },
+    { t: 463.96, label: 'G 3: закъснение' },
+    { t: 467.2, label: 'Graph Editor' },
+    { t: 470.92, label: 'T → Back' },
+    { t: 476.28, label: 'Филтър Y Euler' },
+    { t: 480.36, label: 'Greda: Stepped Interpolation' },
+    { t: 499.84, label: 'Ramo_L: Noise' },
+    { t: 520.44, label: 'Ramo_D' },
+    { t: 541.04, label: 'Два характера' },
+    { t: 554.94, label: 'Output' },
+    { t: 558.34, label: 'F12: Render Image' },
+    { t: 566.3, label: 'Render Animation' }
+  ],
+  cues: [
+    { t: 0, until: 33.58, type: 'panel', panel: 'p-sharnir' },
+    { t: 33.58, until: 93.52, type: 'panel', panel: 'p-veriga' },
+    { t: 93.52, until: 159.98, type: 'panel', panel: 'p-duma' },
+    { t: 159.98, until: 226.98, type: 'panel', panel: 'p-bevel' },
+    { t: 226.98, until: 282.16, type: 'panel', panel: 'p-material' },
+    { t: 282.16, until: 342.8, type: 'panel', panel: 'p-pod' },
+    { t: 342.8, until: 424.58, type: 'panel', panel: 'p-svetlina' },
+    { t: 424.58, until: 452.72, type: 'panel', panel: 'p-kula2' },
+    { t: 452.72, until: 476.28, type: 'panel', panel: 'p-har1' },
+    { t: 476.28, until: 554.46, type: 'panel', panel: 'p-har2' },
+    { t: 554.46, until: 999, type: 'panel', panel: 'p-render' }
+  ]
+};
+</script>
+
+<!-- Статичен кадър, ако видеото не се зареди -->
+
+<template id="poster">
+<img src="video/04-telegraf.jpg" alt="Двете кули на телеграфа в сцена с облачен фон и лилав прожектор" style="width:100%;height:100%;object-fit:contain;display:block">
+</template>
+
+<template id="p-sharnir" data-title="Layout · Front Orthographic">
+  <h2>Шарнир</h2>
+  <p>Всеки обект се върти около своя център (<strong>Origin</strong>), оранжевата точка. Центърът на рамото (Ramo_L) е в средата му, затова при <span class="nw"><kbd>R</kbd> <kbd>Y</kbd></span> то се откъсва от гредата.</p>
+  <p>Центърът трябва да е в болта (Bolt_L):</p>
+  <dl class="map">
+    <div><dt>1. Bolt_L</dt><dd>маркирайте го, <span class="nw"><kbd>Shift</kbd> <kbd>S</kbd></span> → <strong>Cursor to Selected</strong></dd></div>
+    <div><dt>2. Ramo_L</dt><dd>маркирайте го, <strong>Object → Set Origin → Origin to 3D Cursor</strong></dd></div>
+  </dl>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако при Set Origin е маркиран болтът, а не рамото, се мести центърът на болта. Проверете кой обект е с оранжев контур (активният, Active).</p>
+</template>
+
+<template id="p-veriga" data-title="Outliner · Kula">
+  <h2>Верига</h2>
+  <p>Детето (<strong>Child</strong>) следва родителя (<strong>Parent</strong>), но може да се движи и само. Маркирайте първо детето, после с <kbd>Shift</kbd> + клик родителя: последният маркиран е активният (Active), по-светлият. После <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> → <strong>Object (Keep Transform)</strong>.</p>
+  <p>Веригата е от четири нива: <strong>Osnova → Stulb → Greda → Ramo_L и Ramo_D</strong>. Болтовете (Bolt_L, Bolt_D) са помощни и не се рендират, затова ги скрийте с окото в Outliner (Hide in Viewport).</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>При обърнат ред Greda става дете на рамото. Поправя се с <span class="nw"><kbd>Alt</kbd> <kbd>P</kbd></span> → <strong>Clear Parent</strong>.</p>
+  <p>Втори клик на същото място върху активен обект маркира обекта зад него. Кликнете на друго място.</p>
+</template>
+
+<template id="p-duma" data-title="Animation · Dope Sheet">
+  <h2>Думата</h2>
+  <p>Знакът се чете само ако постои, затова всяка поза има два ключа (<strong>Keyframe</strong>):</p>
+  <dl class="map">
+    <div><dt>Пристигане</dt><dd>знакът пристига за 12 кадъра (Frames)</dd></div>
+    <div><dt>Тръгване</dt><dd>след 36 кадъра престой</dd></div>
+  </dl>
+  <p>Рамото помни ъгъла си спрямо гредата (Greda е негов Parent): когато гредата се завърти, рамената тръгват с нея, без да се разпадат. Ъглите са в азбуката на страницата „Задача“.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако една от трите части няма ключ, тя се връща в старата си поза. Маркирайте Greda, Ramo_L и Ramo_D, преди да натиснете <kbd>I</kbd> (Insert Keyframe).</p>
+</template>
+
+<template id="p-bevel" data-title="Properties · Modifiers">
+  <h2>Форма</h2>
+  <p>Всичко по външния вид (модификатори и материали) се прави <strong>преди</strong> копирането на кулата, за да го вземе и копието.</p>
+  <p><strong>Bevel</strong> е модификатор (Modifier), който закръгля ръбовете: тънкият ръб хваща светлина и кутията спира да изглежда като кутия.</p>
+  <dl class="map">
+    <div><dt>Stulb</dt><dd>Add Modifier → Bevel<small>Amount 0.028, Segments 2</small></dd></div>
+    <div><dt>Другите части</dt><dd>маркирайте ги, Stulb последен (Active), <span class="nw"><kbd>Ctrl</kbd> <kbd>L</kbd></span> → <strong>Copy Modifiers</strong></dd></div>
+    <div><dt>Тънките части</dt><dd>Amount 0.01</dd></div>
+    <div><dt>Osnova</dt><dd>Object → Shade Auto Smooth</dd></div>
+  </dl>
+</template>
+
+<template id="p-material" data-title="Shading · Shader Editor">
+  <h2>Материал от снимка</h2>
+  <p>От една снимка (<strong>Image Texture</strong>) излизат три неща:</p>
+  <dl class="map">
+    <div><dt>Цвят</dt><dd>Color → Base Color на Principled BSDF</dd></div>
+    <div><dt>Грапавост</dt><dd>снимката → Color Ramp → Roughness<small>светлите места са матови</small></dd></div>
+    <div><dt>Релеф</dt><dd>снимката → Bump (Height), Normal → Normal на Principled BSDF</dd></div>
+    <div><dt>Ръжда</dt><dd>копие на материала, втори Color Ramp → Base Color<small>от почти черно към червено</small></dd></div>
+  </dl>
+  <p>Снимките са в папката <code>textures</code>. Довлачете ги от File Browser горе вляво направо в Shader Editor. UV картите са готови в стартовия файл.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Възел (Node), пуснат върху съществуваща връзка (Link), се вмъква в нея и избутва Principled надясно. Добавете възлите първо, после ги свържете.</p>
+</template>
+
+<template id="p-pod" data-title="Shading · World">
+  <h2>Под и фон</h2>
+  <p>Подът и фонът са с <strong>Voronoi Texture</strong>: светъл под с петна и облачен фон като циклорама. Телеграфът стои като декор на сцена.</p>
+  <dl class="map">
+    <div><dt>Teren</dt><dd>Voronoi Texture → Color Ramp → Base Color<small>Scale 22, Detail 2.3</small></dd></div>
+    <div><dt>Фонът (World)</dt><dd>в Shader Editor сменете Object на <strong>World</strong>, Voronoi Texture → Color на Background<small>Scale 4.4, Strength 0.24</small></dd></div>
+  </dl>
+</template>
+
+<template id="p-svetlina" data-title="Properties · Light">
+  <h2>Светлина и камера</h2>
+  <p>Топлото слънце (Slunce, Sun) остава. Срещу него добавете цветен <strong>Spot</strong> отгоре вляво.</p>
+  <dl class="map">
+    <div><dt>Location, Rotation</dt><dd><span class="nw"><kbd>G</kbd> <kbd>X</kbd> −6</span>, <span class="nw"><kbd>G</kbd> <kbd>Z</kbd> 12.6</span>, <span class="nw"><kbd>R</kbd> <kbd>Y</kbd> −30</span></dd></div>
+    <div><dt>Spot</dt><dd>Power 10000 W, Angle 55°, Blend 1<small>лилав цвят, Hex D0B9FF</small></dd></div>
+    <div><dt>Look</dt><dd>Render Properties → Color Management → Look: <strong>AgX - Very High Contrast</strong></dd></div>
+    <div><dt>Kamera</dt><dd>слиза на 1,7 m и гледа леко нагоре<small>кулите стават монументални</small></dd></div>
+  </dl>
+  <h3 class="quiet">Проблем</h3>
+  <p>Снимките са извън файла (.blend) и на друг компютър текстурите (Image Texture) стават розови. <strong>File → External Data → Pack Resources</strong> ги вгражда във файла.</p>
+</template>
+
+<template id="p-kula2" data-title="Animation · Dope Sheet">
+  <h2>Втора кула</h2>
+  <p>Десен клик върху Osnova в Outliner → <strong>Select Hierarchy</strong> маркира цялата кула. <span class="nw"><kbd>Shift</kbd> <kbd>D</kbd></span>, <kbd>X</kbd> 12, Enter. Копието носи свои ключове (Keyframes), същите материали, Bevel и UV Map.</p>
+  <p>В Dope Sheet <kbd>A</kbd> маркира ключовете на копието, <kbd>G</kbd> 48 ги отмества с 2 секунди. Втората кула повтаря съобщението като щафета.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако копирате и местите само Stulb, при пускане той скача обратно, защото <kbd>I</kbd> е записал и позицията му. Местете Osnova: тя няма ключове.</p>
+</template>
+
+<template id="p-har1" data-title="Graph Editor · Ramo_L, Ramo_D">
+  <h2>Характер: новата машина</h2>
+  <p>Една и съща дума, два характера. Първата кула е пъргава: Ramo_L и Ramo_D закъсняват след Greda и прескачат знака.</p>
+  <dl class="map">
+    <div><dt>Закъснение</dt><dd>на Frame 12, с мишката над Dope Sheet, <kbd>]</kbd> маркира ключовете след него, <kbd>G</kbd> 3<small>рамената тръгват 3 кадъра по-късно</small></dd></div>
+    <div><dt>Back</dt><dd><span class="nw"><kbd>Ctrl</kbd> <kbd>Tab</kbd></span> → Graph Editor, <kbd>A</kbd>, <kbd>T</kbd> → <strong>Back</strong></dd></div>
+  </dl>
+</template>
+
+<template id="p-har2" data-title="Graph Editor · Modifiers">
+  <h2>Характер: старата машина</h2>
+  <p>Втората кула е стара и тракаща. Филтърът <strong>Y Euler</strong> оставя само кривата на завъртането. Клик върху ключ я прави активна (Active F-Curve), после в страничната лента (Sidebar, <kbd>N</kbd>) <strong>Modifiers → Add Modifier</strong>.</p>
+  <dl class="map">
+    <div><dt>Greda</dt><dd>Stepped Interpolation, Step Size 3<small>движи се на стъпки като часовник</small></dd></div>
+    <div><dt>Ramo_L, Ramo_D</dt><dd>Noise, Strength 0.3, Scale 1.5<small>треперят с около ±4°</small></dd></div>
+  </dl>
+  <h3 class="quiet">Проблем</h3>
+  <p>Add Modifier е сив, ако няма активна крива: кликнете ключ. Клик върху вече отворения раздел Modifiers скрива Sidebar, а <kbd>N</kbd> я връща.</p>
+</template>
+
+<template id="p-render" data-title="Properties · Output">
+  <h2>Рендер</h2>
+  <dl class="map">
+    <div><dt>Output</dt><dd>Media Type Video, MPEG-4, H.264<small>както в задача 03</small></dd></div>
+    <div><dt>Render Image</dt><dd><kbd>F12</kbd> рендира един кадър, <kbd>Esc</kbd> връща изгледа</dd></div>
+    <div><dt>Render Animation</dt><dd>Render → Render Animation (<span class="nw"><kbd>Ctrl</kbd> <kbd>F12</kbd></span>)<small>384 кадъра, около 2 минути на този компютър</small></dd></div>
+  </dl>
+  <p>Докато рендира, Blender не реагира.</p>
+</template>
+
+<template id="page-task">
+  <h2>Задача: Телеграф</h2>
+  <p>Сглобете механизма на оптическия телеграф и го накарайте да изпрати дума.</p>
+  <table>
+    <thead><tr><th>#</th><th>Елемент</th><th>Техника</th><th><br></th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Рамената</td><td>Origin в болта (Bolt_L, Bolt_D)</td><td><br></td></tr>
+      <tr><td>2</td><td>Веригата</td><td>Parent (<kbd>Ctrl</kbd> <kbd>P</kbd>)</td><td><br></td></tr>
+      <tr><td>3</td><td>Думата</td><td>Keyframes и задържане</td><td><br></td></tr>
+      <tr><td>4</td><td>Форма, материали и светлина</td><td>Bevel, Image Texture, Voronoi Texture, Sun и цветен Spot</td><td><br></td></tr>
+      <tr><td>5</td><td>Втората кула</td><td>Duplicate от Osnova (Select Hierarchy) и отместване на Keyframes</td><td><br></td></tr>
+      <tr><td>6</td><td>Характерът</td><td>Graph Editor</td><td><br></td></tr>
+      <tr><td>7</td><td>Клипът</td><td>Render Animation</td><td><br></td></tr>
+    </tbody>
+  </table>
+  <h3><br></h3><ul>
+  </ul>
+</template>
+
+<template id="page-home">
+  <h2>Домашно</h2>
+  <h3><br></h3>
+</template>
+
+<script src="engine/lesson.js?v=12"></script>
+</body>
+</html>
+</body></html>

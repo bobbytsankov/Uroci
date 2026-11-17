@@ -10,5 +10,6 @@
   - `04_telegraf/` — Телеграф
 - `4_kurs/` — IV курс, After Effects и Premiere Pro
   - `proun99_kolazh/` — Проун 99 в движение
+  - `07_effects/` — Effects: ефектите на времето (Echo, CC Wide Time, Time Displacement)
 
 Всеки урок е в своя папка с `index.html` и нужните му файлове.

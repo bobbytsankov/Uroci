@@ -1,0 +1,104 @@
+/* Облекло „Blender“ (III курс): граматиката на интерфейса на Blender. */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Fira+Code:wght@500;600&display=swap");
+
+:root {
+  --font-ui: "Fira Sans", "Segoe UI", sans-serif;
+  --font-mono: "Fira Code", Consolas, monospace;
+
+  --gap: oklch(17% 0 0);
+  --panel: oklch(28% 0 0);
+  --panel-lo: oklch(22.5% 0 0);
+  --panel-hi: oklch(34% 0 0);
+  --line: oklch(36% 0 0);
+  --line-strong: oklch(62% 0 0);
+  --text: oklch(91% 0 0);
+  --text-dim: oklch(76% 0 0);
+
+  --accent: oklch(76% .16 62);          /* оранжевото на Blender: активно, бележки */
+  --on-accent: oklch(17% 0 0);
+  --focus: oklch(62% .13 255);
+  --select: oklch(48% .12 255);
+  --on-select: oklch(97% 0 0);
+  --select-soft: oklch(34% .05 255);
+  --video-bg: oklch(15% 0 0);
+  --frame-line: oklch(55% .13 255);
+  --cue: oklch(76% .16 62);
+  --on-cue: oklch(17% 0 0);
+  --time: oklch(91% 0 0);
+  --playhead: oklch(58% .14 255);
+  --on-playhead: oklch(98% 0 0);
+  --band: oklch(33% .015 255);
+  --band-current: oklch(40% .07 255);
+  --on-band: oklch(91% 0 0);
+  --gem: oklch(76% .16 62);
+  --gem-edge: oklch(17% 0 0);
+  --ok: oklch(72% .15 145);
+  --handle: oklch(78% .15 145);         /* дръжките в Graph Editor */
+  --channel: oklch(65% .2 25);          /* маркерът на анимиран канал */
+  --on-ok: oklch(17% 0 0);
+
+  --fs-ui: 17px;
+  --fs-small: 15px;
+  --fs-tiny: 14px;
+  --fs-body: 22px;
+  --fs-body-s: 19px;
+  --fs-h2: 32px;
+  --fs-h3: 22px;
+
+  --gutter: 4px;
+  --radius: 6px;
+  --top-h: 48px;
+  --head-h: 34px;
+  --ctl-h: 52px;
+  --tl-h: 168px;
+  --row-h: 100px;
+  --name-w: 110px;
+  --steps-w: 0px;
+  --panel-open-w: 430px;
+  --panel-w: var(--panel-open-w);
+}
+
+.app {
+  grid-template-columns: minmax(0, 1fr) var(--panel-w);
+  grid-template-areas:
+    "top   top"
+    "stage panel"
+    "tl    tl";
+}
+.steps { display: none; }
+
+.brand { color: var(--text); }
+.top .tabs { align-self: stretch; padding-top: 6px; }
+
+.markers .band { top: 10px; bottom: auto; height: 30px; background: var(--band); outline: 1px solid var(--line); color: var(--text-dim); font-weight: 500; }
+.markers .band.current { background: var(--band-current); outline: 1px solid var(--focus); color: var(--text); }
+.markers .mark { top: 48px; transform: translateX(-50%); gap: 8px; }
+.markers .mark span { padding: 0 4px; }
+
+@media (max-width: 1280px) {
+  html:root { --tl-h: 186px; --row-h: 118px; }
+}
+
+/* С понятия и клавиши: тънък ред със стъпките (главите са в табовете), отдолу контекстът */
+.has-ctx { --tl-h: 312px; --strip-h: 84px; }
+.has-ctx .ruler { height: 24px; }
+.has-ctx .ruler .tl-track span { top: 4px; }
+.has-ctx .markers { min-height: 60px; }
+.has-ctx .markers .band { display: none; }
+.has-ctx .markers .tl-track::before { content: ""; position: absolute; left: 0; right: 0; top: 20px; height: 2px; background: var(--line); }
+/* Текущата глава: синя отсечка върху линията; ромбове само за нейните стъпки, другите са точки */
+.has-ctx .markers .band.current { display: block; top: 18px; bottom: auto; height: 6px; padding: 0; border-radius: 3px; background: var(--select); outline: 0; z-index: 1; }
+.has-ctx .markers .mark { top: 21px; transform: translate(-50%, -50%); }
+.has-ctx .markers .mark .gem { width: 6px; height: 6px; border-radius: 50%; transform: none; outline: 0; background: var(--text-dim); opacity: .45; }
+.has-ctx .markers .mark.in-ch .gem { width: 11px; height: 11px; border-radius: 0; transform: rotate(45deg); background: var(--gem); outline: 1.5px solid var(--gem-edge); opacity: 1; }
+.has-ctx .markers .mark:hover .gem { opacity: 1; }
+.has-ctx .markers .mark.current .gem { width: 16px; height: 16px; }
+.has-ctx .markers .mark span { display: none; }
+.has-ctx .markers .mark.current span, .has-ctx .markers .mark:hover span { display: block; position: absolute; left: 50%; transform: translateX(-50%); top: 18px; padding: 1px 6px; font-size: var(--fs-small); font-weight: 600; line-height: 1.3; white-space: nowrap; }
+.has-ctx .markers .mark:hover:not(.current) span { color: var(--text); font-weight: 500; }
+.has-ctx .markers .mark:first-of-type span { left: -6px; transform: none; }
+.has-ctx .markers .mark:last-of-type span { left: auto; right: -6px; transform: none; }
+@media (max-width: 1280px) {
+  html:root .has-ctx { --tl-h: 290px; }
+  .has-ctx .markers .mark:nth-of-type(even) span { margin-top: 0; }
+}

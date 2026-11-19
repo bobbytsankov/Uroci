@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rigging</title>
+<link rel="stylesheet" href="engine/lesson.css?v=12">
+<link rel="stylesheet" href="engine/skin-blender.css?v=12">
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<!--
+  Урок 05 (19.11.2026): видеото е записано от файловете в 05_Rigging (start, _za_video/A…V, reshenie) със
+  симулирани събития; зуумът, рамките, курсорът, надписите и клавишите са вградени във видеото, затова тук
+  няма cues от тип callout и keys. Главите и стъпките са от join.py (05-rigging_lesson.json).
+  Текстът на панелите е от Скрипт.md на задачата.
+-->
+<script>
+window.LESSON = {
+  skin: 'blender',
+  brand: 'Урок',
+  brandIcon: '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V8M5 6h14M6 6v6M18 6l3 4" fill="none" stroke="oklch(76% .16 62)" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  title: 'Rigging',
+  course: 'III курс · Blender',
+  task: 'Задача 05',
+  timeline: 'markers',
+  video: { src: 'video/05-rigging.mp4?v=1', duration: 331.22 },   // ?v= се вдига при всяка нова версия на видеото (кеш)
+  chapters: [
+    { title: 'Първата кост', start: 0, panel: 'p-kost',
+      terms: [
+        { t: 'Арматура (Armature)', d: 'Обектът, който съдържа костите.', at: 11.2 },
+        { t: 'Кост (Bone)', d: 'Елемент на арматурата с глава (Head) и връх (Tail), върти се около главата.', at: 32.52 },
+        { t: 'Edit Mode / Pose Mode', d: 'В първия определяме положението на костите (Rest Pose), във втория ги движим за анимация.', at: 48.04 }
+      ],
+      keys: [
+        { k: ['Shift', 'S'], a: 'Snap', d: 'меню за курсора и избраното' },
+        { k: ['Shift', 'A'], a: 'Add → Armature' },
+        { k: ['Tab'], a: 'Edit Mode' },
+        { k: ['Ctrl', 'Tab'], a: 'Pose Mode' },
+        { k: ['F2'], a: 'Rename', d: 'преименуване' },
+        { k: ['Alt', 'R'], a: 'Clear Rotation', d: 'връща въртенето в Rest Pose' }
+      ] },
+    { title: 'Костите на буталото', start: 61.06, panel: 'p-kosti',
+      terms: [
+        { t: 'Родител и дете (Parent / Child)', d: 'Детето следва родителя.', at: 115.96 },
+        { t: 'Keep Offset', d: 'Детето остава на мястото си, без да се свързва с върха на родителя.', at: 120.2 },
+        { t: '3D курсор (3D Cursor)', d: 'Точката, в която се добавят нови обекти и кости.', at: 65.26 }
+      ],
+      keys: [
+        { k: ['Shift', 'S'], a: 'Cursor to Selected / Selection to Cursor' },
+        { k: ['Ctrl', 'P'], a: 'Keep Offset', d: 'прави избраната кост дете на активната' }
+      ] },
+    { title: 'Частите следват костите', start: 151.42, panel: 'p-chasti',
+      terms: [
+        { t: 'Ctrl P → Bone', d: 'Обектът следва изцяло една кост, без деформация; така се ригват механични части.', at: 162.74 }
+      ],
+      keys: [
+        { k: ['Ctrl', 'P'], a: 'Bone' },
+        { k: ['Ctrl', 'Z'], a: 'Undo', d: 'отмяна' }
+      ] },
+    { title: 'Damped Track', start: 207.08, panel: 'p-damped',
+      terms: [
+        { t: 'Ограничение (Bone Constraint)', d: 'Правило, което управлява трансформацията на костта.', at: 210.4 },
+        { t: 'Damped Track', d: 'Костта сочи към цел с оста си Y.', at: 213.44 },
+        { t: 'Head/Tail', d: 'Точка по дължината на целевата кост: 0 е главата, 1 е върхът.', at: 229.32 }
+      ],
+      keys: [] },
+    { title: 'Анимация', start: 274.38, panel: 'p-animacia',
+      terms: [
+        { fig: 'keys', t: 'Ключов кадър (Keyframe)', d: 'Записано положение на костта в даден кадър.', at: 280.54 }
+      ],
+      keys: [
+        { k: ['I'], a: 'Insert Keyframe', d: 'ключов кадър' },
+        { k: ['Numpad 0'], a: 'Active Camera', d: 'изглед от камерата' },
+        { k: ['Space'], a: 'Play Animation', d: 'пуска анимацията' }
+      ] },
+    { title: 'Задача', page: 'page-task' },
+    { title: 'Домашно', page: 'page-home' }
+  ],
+  steps: [
+    { t: 0.56, label: 'Избираме рамото' }, { t: 3.52, label: 'Shift S → Cursor to Selected' }, { t: 8.36, label: 'Курсорът в шарнира' },
+    { t: 11.2, label: 'Shift A → Armature' }, { t: 16.16, label: 'Костта в курсора' }, { t: 19.16, label: 'Object Data → Viewport Display' },
+    { t: 24.8, label: 'Names и In Front' }, { t: 29.96, label: 'Tab: Edit Mode' }, { t: 32.52, label: 'Върхът на костта' },
+    { t: 35.4, label: 'G: върхът по рамото' }, { t: 40.76, label: 'F2: Ramo' }, { t: 45.72, label: 'Tab: Object Mode' },
+    { t: 48.04, label: 'Ctrl Tab: Pose Mode' }, { t: 49.96, label: 'Избираме костта' }, { t: 52.72, label: 'R: около шарнира' },
+    { t: 58.68, label: 'Alt R: Rest Pose' },
+    { t: 61.54, label: 'Прътът в Outliner' }, { t: 65.26, label: 'Shift S → Cursor to Selected' }, { t: 70.14, label: 'Курсорът в болта на пръта' },
+    { t: 72.78, label: 'Избираме арматурата' }, { t: 76.5, label: 'Tab: Edit Mode' }, { t: 78.34, label: 'Върхът на Ramo' },
+    { t: 81.18, label: 'Shift S → Selection to Cursor' }, { t: 86.14, label: 'Върхът в болта' }, { t: 88.5, label: 'Shift A: нова кост' },
+    { t: 91.5, label: 'Избираме новата кост' }, { t: 94.26, label: 'F2: Prut' }, { t: 98.78, label: 'Върхът към цилиндъра' },
+    { t: 106.86, label: 'Tsilindur и Prozhektor' }, { t: 110.2, label: 'Първо детето Prut' }, { t: 113.16, label: 'Shift + клик: Ramo' },
+    { t: 115.96, label: 'Ctrl P → Keep Offset' }, { t: 120.2, label: 'Прекъсната линия' }, { t: 123.36, label: 'Prozhektor също' },
+    { t: 133.2, label: 'Tab, Ctrl Tab: Pose Mode' }, { t: 137.28, label: 'R на Ramo' }, { t: 145.68, label: 'Децата следват' },
+    { t: 149.48, label: 'Alt R' },
+    { t: 151.9, label: 'Първо частта Ramo' }, { t: 155.82, label: 'Shift + клик: арматурата' }, { t: 158.74, label: 'Ctrl Tab: Pose Mode' },
+    { t: 160.66, label: 'Избираме костта' }, { t: 162.74, label: 'Ctrl P → Bone' }, { t: 169.7, label: 'Tsilindur по същия начин' },
+    { t: 185.98, label: 'Prut и Prozhektor' }, { t: 188.98, label: 'Пробваме с R' }, { t: 201.14, label: 'Буталото се разминава' },
+    { t: 205.14, label: 'Alt R' },
+    { t: 207.52, label: 'Избираме Tsilindur' }, { t: 210.4, label: 'Bone Constraint Properties' }, { t: 213.44, label: 'Add → Damped Track' },
+    { t: 218.96, label: 'Target: Armature' }, { t: 224.08, label: 'Bone: Ramo' }, { t: 229.32, label: 'Head/Tail: 1' },
+    { t: 233.52, label: 'Избираме Prut' }, { t: 241.96, label: 'Target: Armature' }, { t: 247.2, label: 'Bone: Tsilindur' },
+    { t: 252.52, label: 'Head/Tail: 0' }, { t: 255.96, label: 'R на Ramo' }, { t: 269.04, label: 'Буталото е цяло' },
+    { t: 272.52, label: 'Alt R' },
+    { t: 274.86, label: 'Кадър 1: Ramo и Prozhektor' }, { t: 280.54, label: 'I: начално положение' }, { t: 283.26, label: 'Кадър 60' },
+    { t: 288.06, label: 'Само Ramo' }, { t: 291.02, label: 'R 90: вертикално' }, { t: 294.86, label: 'I на кадър 60' },
+    { t: 296.74, label: 'Кадър 66' }, { t: 307.26, label: 'Кадър 100' }, { t: 312.22, label: 'R 55: накланяне' },
+    { t: 317.54, label: 'Numpad 0: камера' }, { t: 319.94, label: 'Rendered' }, { t: 323.06, label: 'Пускаме' }
+  ],
+  cues: [
+    { t: 0, until: 8.36, type: 'panel', panel: 'p-kost' },
+    { t: 8.36, until: 45.72, type: 'panel', panel: 'p-kost1' },
+    { t: 45.72, until: 61.06, type: 'panel', panel: 'p-kost2' },
+    { t: 61.06, until: 70.14, type: 'panel', panel: 'p-kosti' },
+    { t: 70.14, until: 123.36, type: 'panel', panel: 'p-kosti1' },
+    { t: 123.36, until: 151.42, type: 'panel', panel: 'p-kosti2' },
+    { t: 151.42, until: 158.74, type: 'panel', panel: 'p-chasti' },
+    { t: 158.74, until: 188.98, type: 'panel', panel: 'p-chasti1' },
+    { t: 188.98, until: 207.08, type: 'panel', panel: 'p-chasti2' },
+    { t: 207.08, until: 213.44, type: 'panel', panel: 'p-damped' },
+    { t: 213.44, until: 255.96, type: 'panel', panel: 'p-damped1' },
+    { t: 255.96, until: 274.38, type: 'panel', panel: 'p-damped2' },
+    { t: 274.38, until: 283.26, type: 'panel', panel: 'p-animacia' },
+    { t: 283.26, until: 312.22, type: 'panel', panel: 'p-animacia1' },
+    { t: 312.22, until: 999, type: 'panel', panel: 'p-animacia2' }
+  ]
+};
+</script>
+
+<!-- Статичен кадър, ако видеото не се зареди -->
+<template id="poster">
+<img src="video/05-rigging.jpg" alt="Осветителната кула с вдигнато рамо и лъч на прожектора върху пода" style="width:100%;height:100%;object-fit:contain;display:block">
+</template>
+
+<template id="p-kost" data-title="Layout · Front Orthographic">
+  <h2>Арматура и първата кост</h2>
+  <p>Ригът е набор от кости, който движи частите на модела, затова анимираме костите, а не самите части. Всяка кост се върти около главата си (<strong>Head</strong>), затова за механизъм главата трябва да е точно в болта, около който се върти частта. Ако главата е встрани от болта, частта се завърта около грешна точка и се разминава с останалите.</p>
+</template>
+<template id="p-kost1" data-title="Layout · Front Orthographic">
+  <h2>Арматура и първата кост</h2>
+  <h3 class="quiet">Какво се прави</h3>
+  <p>Искаме главата на първата кост да е в шарнира на рамото. В Object Mode избираме Ramo и натискаме <span class="nw"><kbd>Shift</kbd> <kbd>S</kbd></span> → <strong>Cursor to Selected</strong>; 3D курсорът отива в началото на рамото, т.е. в шарнира. После натискаме <span class="nw"><kbd>Shift</kbd> <kbd>A</kbd></span> → <strong>Armature</strong>. Появява се обект Armature с една кост, чиято глава е в курсора и която сочи нагоре по Z. За да виждаме костта през рамото, в Object Data Properties (зелената фигурка) → Viewport Display включваме <strong>Names</strong>, за да се виждат имената на костите, и <strong>In Front</strong>. Влизаме в Edit Mode с <kbd>Tab</kbd>: тук определяме къде стоят костите. Кликваме върху малкия кръг на върха (Tail) и го местим с <kbd>G</kbd> по рамото. Наименуваме костта Ramo с <kbd>F2</kbd>.</p>
+</template>
+<template id="p-kost2" data-title="Layout · Front Orthographic">
+  <h2>Арматура и първата кост</h2>
+  <h3 class="quiet">Как се стига до стойността</h3>
+  <p>Дължината на костта не влияе на въртенето, защото то е около главата. Затова върхът се поставя там, където ще ни трябва: на болта на пръта. Засега го слагаме приблизително по рамото.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако преди <span class="nw"><kbd>Shift</kbd> <kbd>A</kbd></span> курсорът не е в шарнира, арматурата се появява на друго място. Тогава трием арматурата и повтаряме <span class="nw"><kbd>Shift</kbd> <kbd>S</kbd></span> → Cursor to Selected с избрано рамо.</p>
+  <p><span class="nw"><kbd>Ctrl</kbd> <kbd>Tab</kbd></span> в Edit Mode не влиза в Pose Mode, а отваря менюто с режимите, затова първо излизаме с <kbd>Tab</kbd>. Ако в Pose Mode <kbd>R</kbd> не прави нищо, костта не е избрана: в Edit Mode беше избран само върхът ѝ.</p>
+</template>
+
+<template id="p-kosti" data-title="Layout · Edit Mode">
+  <h2>Костите на буталото и на прожектора</h2>
+  <p>Всяка подвижна част получава своя кост с глава в своя болт. Прътът и прожекторът са закачени за рамото, затова техните кости стават деца на костта Ramo: когато рамото се завърти, те се движат с него. Цилиндърът е закачен за ремаркето, което не мърда, затова неговата кост няма родител.</p>
+</template>
+<template id="p-kosti1" data-title="Layout · Edit Mode">
+  <h2>Костите на буталото и на прожектора</h2>
+  <h3 class="quiet">Какво се прави</h3>
+  <p>Нова кост в Edit Mode се добавя с <span class="nw"><kbd>Shift</kbd> <kbd>A</kbd></span> и главата ѝ е там, където е курсорът. Затова за всяка кост първо слагаме курсора в болта.</p>
+  <dl class="map">
+    <div><dt>1. Курсорът</dt><dd>излизаме с <kbd>Tab</kbd>, избираме Prut и натискаме <span class="nw"><kbd>Shift</kbd> <kbd>S</kbd></span> → <strong>Cursor to Selected</strong>; курсорът отива в болта на пръта</dd></div>
+    <div><dt>2. Върхът на Ramo</dt><dd>избираме арматурата, <kbd>Tab</kbd>, избираме върха на костта Ramo и натискаме <span class="nw"><kbd>Shift</kbd> <kbd>S</kbd></span> → <strong>Selection to Cursor</strong>: върхът отива точно в болта на пръта</dd></div>
+    <div><dt>3. Новата кост</dt><dd><span class="nw"><kbd>Shift</kbd> <kbd>A</kbd></span>: новата кост излиза от същия болт, наименуваме я Prut с <kbd>F2</kbd> и с <kbd>G</kbd> насочваме върха ѝ приблизително към цилиндъра</dd></div>
+    <div><dt>4. Другите две</dt><dd>по същия начин курсорът отива в болта на Tsilindur (кост Tsilindur, насочена към пръта) и в шарнира на Prozhektor (кост Prozhektor, насочена нагоре)</dd></div>
+    <div><dt>5. Родителят</dt><dd>избираме Prut, после с <kbd>Shift</kbd> костта Ramo, натискаме <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> → <strong>Keep Offset</strong>; повтаряме за Prozhektor → Ramo</dd></div>
+  </dl>
+</template>
+<template id="p-kosti2" data-title="Layout · Edit Mode">
+  <h2>Костите на буталото и на прожектора</h2>
+  <h3 class="quiet">Как се стига до стойността</h3>
+  <p>Главите трябва да са точни, защото около тях става въртенето. Посоката на Prut и Tsilindur може да е приблизителна, защото Damped Track ще ги насочи сам.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>При <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> последната избрана кост става родител. Ако изберем костите наобратно, Ramo става дете на Prut. Проверяваме в Bone Properties → Relations → Parent.</p>
+  <p>Прътът е скрит в цилиндъра, затова го избираме в Outliner. След <span class="nw"><kbd>Shift</kbd> <kbd>A</kbd></span> в Edit Mode новата кост е избрана, но не е активна: преди <kbd>F2</kbd> я избираме с клик.</p>
+</template>
+
+<template id="p-chasti" data-title="Layout · Pose Mode">
+  <h2>Частите следват костите</h2>
+  <p>Досега костите се движат, но частите не. Всяка твърда част трябва да следва изцяло една кост, без да се огъва. Това прави <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> → <strong>Bone</strong>: обектът се закача за избраната кост така, както в урок 04 частите се закачаха за друг обект.</p>
+</template>
+<template id="p-chasti1" data-title="Layout · Pose Mode">
+  <h2>Частите следват костите</h2>
+  <h3 class="quiet">Какво се прави</h3>
+  <p>В Object Mode избираме Ramo, после с <kbd>Shift</kbd> арматурата, и влизаме в Pose Mode с <span class="nw"><kbd>Ctrl</kbd> <kbd>Tab</kbd></span>. Кликваме костта Ramo, за да е активна, и натискаме <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> → <strong>Bone</strong>. Връщаме се в Object Mode с <span class="nw"><kbd>Ctrl</kbd> <kbd>Tab</kbd></span> и повтаряме за Tsilindur → кост Tsilindur и Prut → кост Prut. Prozhektor се закача по същия начин за костта Prozhektor; светлината Svetlina вече е негово дете от стартовия файл, затова се движи с него.</p>
+</template>
+<template id="p-chasti2" data-title="Layout · Pose Mode">
+  <h2>Частите следват костите</h2>
+  <h3 class="quiet">Как се стига до стойността</h3>
+  <p>Коя кост за коя част се вижда от болта: частта следва костта, чиято глава е в нейния болт.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако след <span class="nw"><kbd>Ctrl</kbd> <kbd>P</kbd></span> частта скочи на друго място, при закачането не е била избрана Bone, а друга опция (например With Automatic Weights). Отменяме с <span class="nw"><kbd>Ctrl</kbd> <kbd>Z</kbd></span> и повтаряме.</p>
+</template>
+
+<template id="p-damped" data-title="Properties · Bone Constraints">
+  <h2>Буталото: Damped Track</h2>
+  <p>Цилиндърът и прътът трябва да са на една линия при всяко положение на рамото. Вместо да ги въртим на ръка във всеки кадър, даваме на всяка от двете кости ограничение (<strong>Bone Constraint</strong>) <strong>Damped Track</strong>: то завърта костта така, че нейната ос Y (от главата към върха) да сочи към цел.</p>
+  <p>Цилиндърът трябва да сочи към болта на пръта, а прътът към болта на цилиндъра. Болтът на пръта е върхът на костта Ramo, затова целта на Tsilindur е Ramo с <strong>Head/Tail</strong> 1, тоест върхът ѝ. Целта на Prut е Tsilindur с Head/Tail 0, тоест главата му.</p>
+</template>
+<template id="p-damped1" data-title="Properties · Bone Constraints">
+  <h2>Буталото: Damped Track</h2>
+  <h3 class="quiet">Какво се прави</h3>
+  <dl class="map">
+    <div><dt>Tsilindur</dt><dd>в Pose Mode избираме костта, в Properties отваряме Bone Constraint Properties → <strong>Add Bone Constraint</strong> → <strong>Damped Track</strong><small>Target: арматурата, Bone: Ramo, Head/Tail: 1</small></dd></div>
+    <div><dt>Prut</dt><dd>избираме костта и добавяме Damped Track<small>Target: арматурата, Bone: Tsilindur, Head/Tail: 0</small></dd></div>
+  </dl>
+</template>
+<template id="p-damped2" data-title="Properties · Bone Constraints">
+  <h2>Буталото: Damped Track</h2>
+  <h3 class="quiet">Как се стига до стойността</h3>
+  <p>Head/Tail казва къде по дължината на целевата кост е точката: 0 е главата, 1 е върхът. Избираме я по това къде е болтът, към който трябва да сочи частта.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Ако двете кости гледат една към друга, Blender приема това, но го отбелязва като кръгова зависимост (dependency cycle): за да насочи цилиндъра, трябва първо да знае къде е прътът, а за пръта трябва да знае къде е цилиндърът. Затова тук целта на цилиндъра е върхът на рамото, който не зависи от буталото.</p>
+</template>
+
+<template id="p-animacia" data-title="Layout · Timeline">
+  <h2>Анимация</h2>
+  <p>След рига анимираме само две кости: Ramo и Prozhektor. Буталото и светлината следват сами. Рамото тръгва от положението за превоз (хоризонтално, кадър 1) и стига работното положение (вертикално), след което прожекторът се накланя към сцената.</p>
+</template>
+<template id="p-animacia1" data-title="Layout · Timeline">
+  <h2>Анимация</h2>
+  <h3 class="quiet">Какво се прави</h3>
+  <dl class="map">
+    <div><dt>Кадър 1</dt><dd>в Pose Mode избираме Ramo и Prozhektor и натискаме <kbd>I</kbd>, за да запишем началното им положение</dd></div>
+    <div><dt>Кадър 60</dt><dd>в изглед отпред избираме Ramo, натискаме <kbd>R</kbd>, пишем 90 и Enter, после <kbd>I</kbd></dd></div>
+    <div><dt>Кадър 66</dt><dd>записваме Prozhektor с <kbd>I</kbd> без промяна, за да стои, докато рамото спре</dd></div>
+    <div><dt>Кадър 100</dt><dd>завъртаме Prozhektor надолу с <kbd>R</kbd>, гледаме в изгледа на камерата (<kbd>Numpad 0</kbd>) къде пада лъчът и натискаме <kbd>I</kbd></dd></div>
+  </dl>
+</template>
+<template id="p-animacia2" data-title="Layout · Timeline">
+  <h2>Анимация</h2>
+  <h3 class="quiet">Как се стига до стойността</h3>
+  <p>90° идва от двете положения на рамото: от хоризонтално до вертикално. Ако при <span class="nw"><kbd>R</kbd> 90</span> рамото се завърти надолу към ремаркето, посоката е обратна и пишем −90. Наклонът на прожектора се избира по това къде на пода трябва да падне светлината.</p>
+  <h3 class="quiet">Проблем</h3>
+  <p>Damped Track върти костите, но не променя дължините им. Ако рамото отиде под хоризонталата, прътът минава през дъното на цилиндъра, а ако отиде много след вертикалата, прътът излиза от него. Затова рамото се анимира между 0° и 90°.</p>
+  <p>Клавишите отиват към областта под мишката: след като напишем кадъра в Timeline, връщаме мишката над 3D изгледа, преди да натиснем <kbd>R</kbd> или <kbd>I</kbd>.</p>
+</template>
+
+<template id="page-task">
+  <h2>Задача: Rigging</h2>
+  <p>Ригваме мобилна осветителна кула и я анимираме: рамото се вдига от положението за превоз, а прожекторът се насочва към точка на сцената.</p>
+  <table>
+    <thead><tr><th>#</th><th>Елемент</th><th>Техника</th><th>Какво трябва да се случи</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Кост Ramo</td><td>Shift A → Armature, Shift S</td><td>главата е в шарнира; рамото се върти около него</td></tr>
+      <tr><td>2</td><td>Кости Prut, Tsilindur, Prozhektor</td><td>Shift A в Edit Mode, Ctrl P → Keep Offset</td><td>главите са в болтовете; Prut и Prozhektor следват Ramo</td></tr>
+      <tr><td>3</td><td>Частите</td><td>Ctrl P → Bone</td><td>всяка част следва своята кост; светлината следва прожектора</td></tr>
+      <tr><td>4</td><td>Буталото</td><td>Damped Track</td><td>цилиндърът и прътът са на една линия при всеки ъгъл</td></tr>
+      <tr><td>5</td><td>Анимацията</td><td>I, R</td><td>рамото се вдига от 0° до 90°, после прожекторът се накланя</td></tr>
+    </tbody>
+  </table>
+  <h3>За вдъхновение</h3>
+  <p>László Moholy-Nagy, „Light Prop for an Electric Stage“ (1930): механична скулптура с мотор, движещи се метални части и светлина, замислена като апарат за сцена. <a href="https://harvardartmuseums.org/article/em-light-prop-for-an-electric-stage-em-past-and-present" target="_blank" rel="noopener">harvardartmuseums.org</a></p>
+  <h3>Допълнително за бързите</h3>
+  <p>Телескопично рамо. Добавяме втора част, която излиза от горния край на рамото: кост, дете на Ramo, която се анимира с <kbd>G</kbd> по оста на рамото, а прожекторът се закача за нея.</p>
+</template>
+
+<template id="page-home">
+  <h2>Домашно</h2>
+  <p>Анимацията продължава до кадър 240: прожекторът осветява една след друга три точки на пода, като спира на всяка, а рамото накрая се връща в положението за превоз.</p>
+  <h3>Какво гледаме следващия път</h3>
+  <p>Анимацията на живо, а в Pose Mode проверяваме, че ключовете са само на Ramo и Prozhektor.</p>
+</template>
+
+<script src="engine/lesson.js?v=12"></script>
+</body>
+</html>

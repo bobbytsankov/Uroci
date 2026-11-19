@@ -8,6 +8,7 @@
   - `02_kegli/` — Кегли и топка
   - `03_animiran_kolazh/` — Анимиран колаж
   - `04_telegraf/` — Телеграф
+  - `05_rigging/` — Rigging
 - `4_kurs/` — IV курс, After Effects и Premiere Pro
   - `proun99_kolazh/` — Проун 99 в движение
   - `07_effects/` — Effects: ефектите на времето (Echo, CC Wide Time, Time Displacement)

@@ -81,6 +81,8 @@ kbd {
 .brand svg { flex: none; }
 .meta { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--text-dim); white-space: nowrap; }
 .meta b { color: var(--text); font-weight: 600; }
+/* Главите не се побират (lesson.js → fitTop): курсът и задачата отстъпват място на главите */
+.top.tight .meta span { display: none; }
 
 .tabs { display: flex; align-items: flex-end; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; min-width: 0; }
 .meta { flex: none; }
@@ -210,6 +212,15 @@ kbd {
 .scrub .track { position: absolute; left: 0; right: 0; height: 6px; border-radius: 3px; background: var(--panel-hi); }
 .scrub .fill { position: absolute; left: 0; height: 6px; border-radius: 3px; background: var(--accent); }
 .scrub .tick { position: absolute; width: 2px; height: 12px; background: var(--text-dim); transform: translateX(-1px); }
+/* Цял екран: регионът „Видео“ запълва екрана, кадърът остава цял (contain), контролите остават отдолу */
+.stage.is-full { position: fixed; inset: 0; z-index: 50; border-radius: 0; }
+.stage.is-full .stage-body { height: auto; flex: 1; }
+.stage::backdrop { background: var(--video-bg); }
+/* Пръст вместо мишка: бутоните и лентата за превъртане са поне 44px */
+@media (pointer: coarse) {
+  .ctl-btn { width: 44px; height: 44px; }
+  .scrub { height: 44px; }
+}
 .rate { min-width: 3.2em; text-align: center; color: var(--text-dim); border-radius: 6px; padding: 6px 4px; }
 .rate:hover { background: var(--panel-hi); color: var(--text); }
 
@@ -481,11 +492,12 @@ button.term.now .at { color: var(--accent); }
   html body .app.panel-closed .panel { display: none; }
   html body .steps { display: none; }
   html body .top { flex-wrap: wrap; padding: 6px 10px 0; }
-  html body .top .tabs { display: flex; order: 3; width: 100%; flex-basis: 100%; }
+  html body .top .tabs { display: flex; order: 3; width: 100%; flex-basis: 100%; flex-wrap: wrap; overflow: visible; }
   html body .meta { margin-left: 0; font-size: var(--fs-small); white-space: normal; flex: 1 1 0; min-width: 0; flex-wrap: wrap; row-gap: 0; padding: 6px 0; }
   html body .meta span:nth-child(n+4) { display: none; }
-  html body .stage-body { height: calc((100vw - 2 * var(--gutter)) * 9 / 16); flex: none; }
+  html body .stage-body { height: min(calc((100vw - 2 * var(--gutter)) * 9 / 16), calc(100svh - var(--head-h) - var(--ctl-h) - 2 * var(--gutter))); flex: none; }
   html body .panel .pbody { width: auto; }
+  html body .stage.is-full .stage-body { height: auto; flex: 1; }
   html body .controls { gap: 6px; padding: 0 6px; }
   html body .rate { display: none; }
   html body .tl-name { width: 0; padding: 0; border: 0; overflow: hidden; }
@@ -509,6 +521,14 @@ button.term.now .at { color: var(--accent); }
   html body .page .move { grid-template-columns: 1.8em minmax(0, 1fr); row-gap: 14px; }
   html body .shot img { max-height: none; }
   html body .guide .pair { grid-auto-flow: row; }
+}
+
+/* ---------- Телефон: лентата за превъртане минава на свой ред над бутоните ---------- */
+@media (max-width: 600px) {
+  html body .controls { flex-wrap: wrap; height: auto; row-gap: 0; padding: 2px 6px 4px; }
+  html body .scrub { order: -1; flex: 1 0 100%; }
+  html body .controls .time { margin-right: auto; }
+  html body .tab { padding: 8px 12px; }
 }
 
 /* ---------- Движение: обратна връзка, скок, пристигане на стъпка ---------- */

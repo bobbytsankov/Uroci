@@ -51,6 +51,8 @@
     back: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 5L4 11l7 6M18 5l-7 6 7 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     fwd: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 5l7 6-7 6M4 5l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     panel: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2.5" y="3.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 4v14" stroke="currentColor" stroke-width="1.8"/></svg>',
+    full: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 8V3h5M14 3h5v5M19 14v5h-5M8 19H3v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    unfull: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M8 3v5H3M19 8h-5V3M14 19v-5h5M3 14h5v5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     done: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--ok)"/><path d="M5.5 10.5l3 3 6-7" stroke="var(--on-ok)" stroke-width="2" fill="none"/></svg>',
     now: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3l12 7-12 7z" fill="currentColor"/></svg>',
     todo: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
@@ -58,15 +60,20 @@
   };
 
   /* ---------- Данни ---------- */
+  L.video = L.video || { src: '', duration: 1 };
   const chapters = L.chapters.map((c, i) => ({ ...c, i, video: c.start != null }));
   const videoChapters = chapters.filter((c) => c.video);
+  // Урок от стъпки с кадри: няма видео глави; главите са страници с <article class="guide">
+  const pagesOnly = !videoChapters.length;
+  chapters.forEach((c) => { c.guide = !c.video && !!document.getElementById(c.page)?.content.querySelector('.guide'); });
+  const guideChapters = chapters.filter((c) => c.guide);
   videoChapters.forEach((c, k) => { c.end = c.end ?? videoChapters[k + 1]?.start ?? L.video.duration; });
   const steps = (L.steps || []).slice().sort((a, b) => a.t - b.t);
   const cues = (L.cues || []).map((c, i) => ({ ...c, i, until: c.until ?? c.t + 6 }));
-  const D = L.video.duration;
+  const D = L.video.duration || 1;
 
   const state = {
-    t: 0, playing: false, rate: 1, demo: !L.video.src, page: null,
+    t: 0, playing: false, rate: 1, demo: !L.video.src && !pagesOnly, page: null,
     userClosed: false, panelId: null, sig: '', lastT: 0, visited: new Set(), editing: false
   };
 
@@ -84,7 +91,15 @@
     }
     return node;
   }
-  const tplWriter = (id) => (n) => { const t = document.getElementById(id); if (t) t.innerHTML = n.innerHTML; };
+  // Записва се само текстът на урока: бутоните и обвивките на механизма (data-ui) се махат
+  const clean = (n) => {
+    const c = n.cloneNode(true);
+    c.querySelectorAll('[data-ui]').forEach((x) => x.remove());
+    c.querySelectorAll('[data-ui-wrap]').forEach((x) => x.replaceWith(...x.childNodes));
+    c.querySelectorAll('[data-zoom]').forEach((x) => x.removeAttribute('data-zoom'));
+    return c.innerHTML;
+  };
+  const tplWriter = (id) => (n) => { const t = document.getElementById(id); if (t) t.innerHTML = clean(n); };
 
   /* ---------- Каркас ---------- */
   document.title = `${L.title} · ${L.course}`;
@@ -114,7 +129,7 @@
   );
 
   let video = null;
-  if (!state.demo) {
+  if (!state.demo && !pagesOnly) {
     video = el('video', { src: L.video.src, preload: 'auto', playsinline: true });
     video.addEventListener('error', () => startDemo('видеото не се зареди'));
     video.addEventListener('ended', () => setPlaying(false));
@@ -138,12 +153,35 @@
     el('div', { class: 'track' }), fill, ...steps.map((s) => el('i', { class: 'tick', style: `left:${(s.t / D) * 100}%` })));
   const rateBtn = el('button', { class: 'rate', title: 'Скорост', onclick: cycleRate }, '1×');
   const panelBtn = el('button', { class: 'ctl-btn', 'aria-label': 'Панел с обяснение', title: 'Панел с обяснение (P)', 'aria-pressed': 'false', html: icon.panel, onclick: togglePin });
+  // Цял екран: регионът „Видео“ (кадърът с бележките и контролите). Ако браузърът откаже (урок в рамка),
+  // регионът покрива целия прозорец; на iPhone, където елемент не може на цял екран, отива самото видео.
+  const setFull = (on) => {
+    stage.classList.toggle('is-full', on);
+    fsBtn.setAttribute('aria-pressed', String(on));
+    fsBtn.setAttribute('aria-label', on ? 'Изход от цял екран' : 'Цял екран');
+    fsBtn.title = on ? 'Изход от цял екран (F, Esc)' : 'Цял екран (F)';
+    fsBtn.innerHTML = on ? icon.unfull : icon.full;
+    render(true);
+  };
+  const toggleFs = () => {
+    if (stage.classList.contains('is-full')) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => setFull(false));
+      else setFull(false);
+    } else if (document.fullscreenEnabled && stage.requestFullscreen) stage.requestFullscreen().catch(() => setFull(true));
+    else if (video?.webkitEnterFullscreen) video.webkitEnterFullscreen();
+    else setFull(true);
+  };
+  const fsBtn = el('button', { class: 'ctl-btn', 'aria-label': 'Цял екран', title: 'Цял екран (F)', 'aria-pressed': 'false', html: icon.full, onclick: toggleFs });
   const controls = el('div', { class: 'controls' },
     el('button', { class: 'ctl-btn', 'aria-label': 'Предишна стъпка', title: 'Предишна стъпка (↑)', html: icon.back, onclick: () => jumpStep(-1) }),
     playBtn,
     el('button', { class: 'ctl-btn', 'aria-label': 'Следваща стъпка', title: 'Следваща стъпка (↓)', html: icon.fwd, onclick: () => jumpStep(1) }),
-    timeEl, scrub, rateBtn, panelBtn);
+    timeEl, scrub, rateBtn, panelBtn, fsBtn);
   stage.append(controls);
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement === stage) setFull(true);
+    else if (!document.fullscreenElement && stage.classList.contains('is-full')) setFull(false);
+  });
 
   const pTitle = el('b');
   const pBody = el('div', { class: 'pbody' });
@@ -158,6 +196,7 @@
     tlBody);
 
   app.append(top, stepsRegion, stage, panel, timeline);
+  if (pagesOnly) app.classList.add('pages');
   app.classList.add('panel-closed');
 
   /* ---------- Глави ---------- */
@@ -167,7 +206,8 @@
     return b;
   });
   const stepEls = chapters.map((c, k) => {
-    const b = el('button', { class: 'step', onclick: () => goChapter(c), html: (c.video ? icon.todo : icon.page) + `<span>${c.video ? (videoChapters.indexOf(c) + 1) + ' ' : ''}${c.title}</span>` });
+    const num = c.video ? videoChapters.indexOf(c) + 1 : c.guide ? guideChapters.indexOf(c) + 1 : 0;
+    const b = el('button', { class: 'step', onclick: () => goChapter(c), html: (num ? icon.todo : icon.page) + `<span>${num ? num + ' ' : ''}${c.title}</span>` });
     stepList.append(el('li', {}, b));
     return b;
   });
@@ -186,9 +226,80 @@
     page.hidden = !c;
     frame.hidden = !!c;
     controls.setAttribute('aria-disabled', c ? 'true' : 'false');
-    if (c) { page.replaceChildren(editable(el('div', { class: 'page-inner' }, tpl(c.page)), tplWriter(c.page))); page.scrollTop = 0; }
+    if (c) {
+      page.replaceChildren(editable(el('div', { class: 'page-inner' }, tpl(c.page)), tplWriter(c.page)));
+      if (c.guide) wireZoom(page.firstChild);
+      // В урок от страници всяка глава завършва с бутон към следващата (извън редактируемия текст)
+      const next = pagesOnly && chapters[c.i + 1];
+      if (next) page.append(el('button', { class: 'next', onclick: () => goChapter(next), html: `<span>Следваща глава</span><b>${next.title}</b>${icon.fwd}` }));
+      page.scrollTop = 0;
+      if (c.guide) state.visited.add(c.i);
+    }
     instant(() => { if (c) app.classList.add('panel-closed'); render(true); });
   }
+
+  /* ---------- Увеличение на кадър (урок от стъпки): бутон върху кадъра, кадърът на цял екран ---------- */
+  const zoomIcon = '<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  const closeIcon = '<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  let zoomList = [], zoomAt = 0;
+  const zTitle = el('b'), zCount = el('span');
+  const zStage = el('div', { class: 'zstage' });
+  const zoomBox = el('dialog', { class: 'zoom', 'aria-label': 'Кадърът на цял екран' },
+    el('div', { class: 'zhead' }, zTitle, zCount,
+      el('button', { class: 'zclose', 'aria-label': 'Затвори (Esc)', title: 'Затвори (Esc)', html: closeIcon, onclick: () => zoomBox.close() })),
+    zStage);
+  document.body.append(zoomBox);
+
+  function wireZoom(root) {
+    zoomList = [...root.querySelectorAll('.shot img, .where img, .result img')];
+    zoomList.forEach((img, k) => {
+      img.dataset.zoom = '';
+      let view = img.parentElement.classList.contains('view') ? img.parentElement : null;
+      if (!view) {                                  // кадър без оградено място: обвивка само за бутона
+        view = el('span', { class: 'view', 'data-ui-wrap': '' });
+        img.replaceWith(view); view.append(img);
+      }
+      const btn = el('button', { class: 'zoom-btn', type: 'button', contenteditable: 'false', 'data-ui': '', 'aria-label': 'Увеличи кадъра', title: 'Увеличи кадъра', html: zoomIcon, onclick: (e) => { e.stopPropagation(); openZoom(k); } });
+      const head = img.closest('.shot, .where')?.querySelector(':scope > .rhead');
+      const place = () => {                         // на тясна лента (тайм линия) бутонът не закрива кадъра
+        if (head && img.naturalWidth / img.naturalHeight > 6) head.append(btn); else view.append(btn);
+      };
+      img.complete && img.naturalWidth ? place() : img.addEventListener('load', place, { once: true });
+      img.addEventListener('click', () => { if (!state.editing) openZoom(k); });
+    });
+  }
+  function fitZoom() {
+    const img = zStage.querySelector('img'), src = zoomList[zoomAt]; if (!img || !src) return;
+    const w = src.naturalWidth || img.naturalWidth, h = src.naturalHeight || img.naturalHeight; if (!w || !h) return;
+    const r = zStage.getBoundingClientRect(), pad = 24;
+    const s = Math.min((r.width - 2 * pad) / w, (r.height - 2 * pad) / h);
+    img.style.width = Math.round(w * s) + 'px';
+    img.style.height = Math.round(h * s) + 'px';
+  }
+  function showZoom(k) {
+    zoomAt = (k + zoomList.length) % zoomList.length;
+    const img = zoomList[zoomAt];
+    const view = img.closest('.view').cloneNode(true);
+    view.querySelectorAll('[data-ui]').forEach((x) => x.remove());
+    view.querySelector('img').addEventListener('click', () => zoomBox.close());
+    zStage.replaceChildren(view);
+    zTitle.textContent = img.closest('figure')?.querySelector('.rhead b')?.textContent || L.title;
+    zCount.textContent = zoomList.length > 1 ? `${zoomAt + 1} / ${zoomList.length}` : '';
+    fitZoom();
+  }
+  function openZoom(k) {
+    if (!zoomBox.open) zoomBox.showModal();
+    showZoom(k);
+    zoomBox.requestFullscreen?.().then(fitZoom, () => {});  // в рамка без разрешение остава на целия прозорец
+  }
+  zoomBox.addEventListener('close', () => { zStage.replaceChildren(); if (document.fullscreenElement === zoomBox) document.exitFullscreen().catch(() => {}); });
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && zoomBox.open) zoomBox.close(); else fitZoom(); });
+  zoomBox.addEventListener('click', (e) => { if (e.target === zoomBox || e.target === zStage) zoomBox.close(); });
+  zoomBox.addEventListener('keydown', (e) => {   // ← → минават по кадрите на главата; главата отдолу не се сменя
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { showZoom(zoomAt + (e.key === 'ArrowRight' ? 1 : -1)); e.preventDefault(); }
+    e.stopPropagation();
+  });
+  addEventListener('resize', () => { if (zoomBox.open) fitZoom(); });
 
   /* ---------- Времева линия ---------- */
   const pct = (t) => `${(t / D) * 100}%`;
@@ -425,6 +536,18 @@
     else if (dir < 0) seek(0);
   }
 
+  // Стъпки с кадри: следващата или предишната стъпка застава горе в страницата
+  function jumpMove(dir) {
+    const moves = [...page.querySelectorAll('.move')];
+    if (!moves.length) return false;
+    const top = page.getBoundingClientRect().top + 8;
+    const tops = moves.map((m) => m.getBoundingClientRect().top - top);
+    const k = dir > 0 ? tops.findIndex((y) => y > 4) : tops.findLastIndex((y) => y < -4);
+    if (k < 0) return false;
+    page.scrollTo({ top: page.scrollTop + tops[k], behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    return true;
+  }
+
   /* ---------- Рисуване ---------- */
   function render(force) {
     const t = state.t;
@@ -447,9 +570,9 @@
       const cur = c === ch;
       tabEls[k].setAttribute('aria-current', cur ? 'true' : 'false');
       stepEls[k].setAttribute('aria-current', cur ? 'true' : 'false');
-      const done = c.video && !cur && c.end <= t;
+      const done = !cur && (c.video ? c.end <= t : c.guide && state.visited.has(c.i));
       stepEls[k].classList.toggle('done', done);
-      stepEls[k].querySelector('.dot').outerHTML = !c.video ? icon.page : cur ? icon.now : done ? icon.done : icon.todo;
+      stepEls[k].querySelector('.dot').outerHTML = !(c.video || c.guide) ? icon.page : cur ? icon.now : done ? icon.done : icon.todo;
     });
     bandEls.forEach(([b, c]) => b.classList.toggle('current', c === ch && !state.page));
     rowEls.forEach(([r, c]) => r.classList.toggle('current', c === ch && !state.page));
@@ -515,15 +638,28 @@
   document.addEventListener('keydown', (e) => {
     if (e.target.closest?.('input, textarea') || e.target.isContentEditable || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key;
+    if (pagesOnly) {                              // урок от страници: ← → сменят главата, ↑ ↓ вървят по стъпките
+      const i = state.page ? state.page.i : 0;
+      if (k === 'ArrowRight' && chapters[i + 1]) goChapter(chapters[i + 1]);
+      else if (k === 'ArrowLeft' && chapters[i - 1]) goChapter(chapters[i - 1]);
+      else if (k === 'ArrowDown' || k === 'ArrowUp') { if (jumpMove(k === 'ArrowDown' ? 1 : -1)) e.preventDefault(); }
+      else if (/^[1-9]$/.test(k) && chapters[+k - 1]) goChapter(chapters[+k - 1]);
+      return;
+    }
     if (k === ' ' || e.code === 'KeyK') { setPlaying(!state.playing); e.preventDefault(); }
     else if (k === 'ArrowLeft' && e.target !== scrub) seek(state.t - 5);
     else if (k === 'ArrowRight' && e.target !== scrub) seek(state.t + 5);
     else if (k === 'ArrowUp') { jumpStep(-1); e.preventDefault(); }
     else if (k === 'ArrowDown') { jumpStep(1); e.preventDefault(); }
     else if (e.code === 'KeyP') togglePin();
+    else if (e.code === 'KeyF') toggleFs();
+    else if (k === 'Escape' && stage.classList.contains('is-full') && !document.fullscreenElement) setFull(false);
     else if (/^[1-9]$/.test(k) && chapters[+k - 1]) goChapter(chapters[+k - 1]);
   });
-  addEventListener('resize', () => render(true));
+  // Горната лента: когато главите не се побират, името на курса и задачата се скриват, за да останат видими всички глави
+  const fitTop = () => { top.classList.remove('tight'); if (tabs.scrollWidth > tabs.clientWidth + 1) top.classList.add('tight'); };
+  fitTop(); document.fonts?.ready.then(fitTop);
+  addEventListener('resize', () => { fitTop(); render(true); });
   new ResizeObserver(() => { state.sig = ''; render(false); }).observe(frame);
 
   /* ---------- Разделител: височината на долната лента се влачи ---------- */
@@ -556,7 +692,10 @@
   /* ---------- Линк към момент: урок.html#t=42 ---------- */
   const fromHash = () => {
     const m = location.hash.match(/t=(\d+(?:\.\d+)?)/);
-    if (m) seek(+m[1]);
+    if (m && !pagesOnly) seek(+m[1]);
+    const g = location.hash.match(/p=(\d+)/);   // урок.html#p=3 отваря трета глава
+    if (g && chapters[+g[1] - 1]) goChapter(chapters[+g[1] - 1]);
+    else if (pagesOnly && !state.page) goChapter(chapters[0]);
   };
   addEventListener('hashchange', fromHash);
 

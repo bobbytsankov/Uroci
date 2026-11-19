@@ -81,6 +81,8 @@ kbd {
 .brand svg { flex: none; }
 .meta { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--text-dim); white-space: nowrap; }
 .meta b { color: var(--text); font-weight: 600; }
+/* Главите не се побират (lesson.js → fitTop): курсът и задачата отстъпват място на главите */
+.top.tight .meta span { display: none; }
 
 .tabs { display: flex; align-items: flex-end; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; min-width: 0; }
 .meta { flex: none; }
@@ -210,6 +212,15 @@ kbd {
 .scrub .track { position: absolute; left: 0; right: 0; height: 6px; border-radius: 3px; background: var(--panel-hi); }
 .scrub .fill { position: absolute; left: 0; height: 6px; border-radius: 3px; background: var(--accent); }
 .scrub .tick { position: absolute; width: 2px; height: 12px; background: var(--text-dim); transform: translateX(-1px); }
+/* Цял екран: регионът „Видео“ запълва екрана, кадърът остава цял (contain), контролите остават отдолу */
+.stage.is-full { position: fixed; inset: 0; z-index: 50; border-radius: 0; }
+.stage.is-full .stage-body { height: auto; flex: 1; }
+.stage::backdrop { background: var(--video-bg); }
+/* Пръст вместо мишка: бутоните и лентата за превъртане са поне 44px */
+@media (pointer: coarse) {
+  .ctl-btn { width: 44px; height: 44px; }
+  .scrub { height: 44px; }
+}
 .rate { min-width: 3.2em; text-align: center; color: var(--text-dim); border-radius: 6px; padding: 6px 4px; }
 .rate:hover { background: var(--panel-hi); color: var(--text); }
 
@@ -238,6 +249,116 @@ kbd {
 .result figure { text-align: center; color: var(--text-dim); font-size: var(--fs-small); }
 .result figure svg { display: block; width: 100%; height: auto; background: var(--video-bg); border-radius: 4px; margin-bottom: 6px; }
 .result figure.after { color: var(--text); }
+
+.result figure img { display: block; width: 100%; height: auto; border-radius: 4px; margin-bottom: 6px; }
+
+/* ---------- Стъпки с кадри: урок без видео, главата е страница ---------- */
+/* Редът на времевата линия се свива до нула; колоните и областите остават на облеклото */
+.app.pages { grid-template-rows: auto minmax(0, 1fr) 0; padding-bottom: 0; }
+.app.pages .timeline, .app.pages .controls { display: none; }
+
+.page-inner:has(> .guide) { max-width: 1320px; }
+.guide { counter-reset: move; }
+.guide > p, .guide > table, .guide > ul { max-width: 70ch; }
+.guide p strong { color: var(--accent); font-weight: 600; }
+
+/* Принципът и схемата му стоят един до друг, преди стъпките */
+.principle { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 14px 40px; align-items: start; margin-bottom: 28px; }
+.principle > p { max-width: 46ch; margin: 0; }
+.principle > p:only-child { grid-column: 1 / -1; max-width: 70ch; }
+.schema { display: block; width: 100%; max-width: var(--w, 640px); height: auto; font-family: var(--font-ui); }
+
+/* Стъпка: номерът и какво и как горе, кадърът от програмата под тях на цялата ширина */
+.page .moves { list-style: none; padding: 0; margin: 0; }
+.page .move {
+  counter-increment: move;
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr);
+  grid-template-areas: "n do" "n shot";
+  column-gap: 24px;
+  row-gap: 18px;
+  align-items: start;
+  margin: 0;
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 8px;
+}
+.move::before { grid-area: n; content: counter(move); font: 600 var(--fs-h3)/1.3 var(--font-ui); font-variant-numeric: tabular-nums; color: var(--accent); }
+.move .do { grid-area: do; max-width: 72ch; }
+.move .shot { grid-area: shot; }
+.move .do h3 { margin: 0 0 8px; line-height: 1.3; text-wrap: balance; }
+.move .do p { margin: 0 0 12px; text-wrap: pretty; }
+.move .trap { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.move .trap > b:first-child { color: var(--accent); font-weight: 600; }
+
+/* Кадър: заглавната лента казва в кой панел на програмата сме */
+.shot, .where { margin: 0; background: var(--panel-lo); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.shot .rhead, .where .rhead { background: var(--gap); }
+/* Кадърът е в центъра: пълна ширина, а високите кадри спират на --shot-h и се центрират */
+.shot > img, .shot > .view, .where > img, .where > .view { align-self: center; max-width: 100%; }
+.shot img, .where img { display: block; width: auto; max-width: 100%; height: auto; }
+.shot img { max-height: var(--shot-h, 68vh); }
+.shot .view, .where .view, .guide .result .view { position: relative; width: fit-content; max-width: 100%; }
+.shot figcaption { align-self: stretch; padding: 12px 14px 14px; font-size: var(--fs-body-s); line-height: 1.45; text-wrap: pretty; }
+.where { max-width: 440px; margin-top: 4px; }
+.where img { width: 100%; }
+/* Оградено място върху суров кадър: --x, --y, --w, --h в проценти от кадъра */
+.spot { position: absolute; left: var(--x); top: var(--y); width: var(--w); height: var(--h); border: 3px solid var(--cue); border-radius: 6px; pointer-events: none; }
+
+/* Увеличение: бутон в горния десен ъгъл на кадъра (на тясна лента: в заглавието), кадърът на цял екран */
+.guide img[data-zoom] { cursor: zoom-in; }
+.zoom-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+  border-radius: 6px; background: oklch(from var(--panel-hi) l c h / .9); color: var(--text);
+  box-shadow: 0 2px 10px oklch(0% 0 0 / .45);
+  transition: background-color .12s, color .12s, transform .12s var(--ease-out);
+}
+.zoom-btn:hover { background: var(--accent); color: var(--on-accent); }
+.zoom-btn:active { transform: scale(.96); transition-duration: .06s; }
+.zoom-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.guide .result .view { display: block; margin-inline: auto; }
+.guide .result .view img { margin-bottom: 0; }
+.guide .result figure .view { margin-bottom: 6px; }
+.where .zoom-btn, .guide .result .zoom-btn { top: 6px; right: 6px; width: 32px; height: 32px; }
+.rhead .zoom-btn { position: static; margin-left: auto; width: 28px; height: 28px; box-shadow: none; background: transparent; color: var(--text-dim); }
+.rhead .zoom-btn:hover { background: var(--panel-hi); color: var(--text); }
+.editing .zoom-btn { display: none; }
+
+.zoom { position: fixed; inset: 0; width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--video-bg); color: var(--text); font-family: var(--font-ui); }
+.zoom[open] { display: flex; flex-direction: column; }
+.zoom::backdrop { background: var(--video-bg); }
+.zoom .zhead { display: flex; align-items: center; gap: 14px; height: var(--head-h); padding: 0 6px 0 16px; background: var(--gap); flex: none; font-size: var(--fs-small); color: var(--text-dim); }
+.zoom .zhead b { color: var(--text); font-weight: 600; }
+.zoom .zhead span { font-variant-numeric: tabular-nums; }
+.zoom .zclose { margin-left: auto; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: var(--text-dim); transition: background-color .12s, color .12s; }
+.zoom .zclose:hover { background: var(--panel-hi); color: var(--text); }
+.zoom .zclose:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.zoom .zstage { flex: 1; min-height: 0; display: grid; place-items: center; }
+.zoom .view { position: relative; }
+.zoom .view img { display: block; cursor: zoom-out; }
+.zoom[open] .view { animation: zoom-in .22s var(--ease-out); }
+@keyframes zoom-in { from { opacity: 0; transform: scale(.97); } }
+@media (prefers-reduced-motion: reduce) { .zoom[open] .view { animation: none; } }
+
+.guide .result { margin: 8px 0 28px; }
+.guide .pair { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.guide .result figure { font-size: var(--fs-body-s); line-height: 1.4; }
+.check { border-top: 1px solid var(--line); padding-top: 28px; }
+.check h3 { margin: 0 0 8px; }
+.check > p { max-width: 70ch; }
+
+.page .next {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 36px; padding: 12px 14px 12px 18px;
+  background: var(--panel-lo); border-radius: 6px;
+  font-size: var(--fs-body-s); color: var(--text-dim);
+  transition: background-color .12s, color .12s, transform .12s var(--ease-out);
+}
+.page .next b { color: var(--text); font-weight: 600; }
+.page .next svg { color: var(--accent); }
+.page .next:hover { background: var(--panel-hi); color: var(--text); }
+.page .next:active { transform: scale(.96); transition-duration: .06s; }
 
 /* ---------- Времева линия ---------- */
 .timeline { grid-area: tl; }
@@ -352,6 +473,10 @@ button.term.now .at { color: var(--accent); }
   html body .result .pair { padding: 8px; gap: 8px; }
   html body .result figure svg { height: 64px; }
   html body .result .rhead { height: 28px; }
+  html body .guide .result .rhead { height: var(--head-h); }
+  html body .page { padding: 28px 32px; }
+  html body .page .move { grid-template-columns: 1.8em minmax(0, 1fr); column-gap: 18px; row-gap: 14px; padding: 22px 0 26px; }
+  html body .principle { gap: 12px 28px; }
 }
 
 /* ---------- Тесни екрани: една колона ---------- */
@@ -367,11 +492,12 @@ button.term.now .at { color: var(--accent); }
   html body .app.panel-closed .panel { display: none; }
   html body .steps { display: none; }
   html body .top { flex-wrap: wrap; padding: 6px 10px 0; }
-  html body .top .tabs { display: flex; order: 3; width: 100%; flex-basis: 100%; }
+  html body .top .tabs { display: flex; order: 3; width: 100%; flex-basis: 100%; flex-wrap: wrap; overflow: visible; }
   html body .meta { margin-left: 0; font-size: var(--fs-small); white-space: normal; flex: 1 1 0; min-width: 0; flex-wrap: wrap; row-gap: 0; padding: 6px 0; }
   html body .meta span:nth-child(n+4) { display: none; }
-  html body .stage-body { height: calc((100vw - 2 * var(--gutter)) * 9 / 16); flex: none; }
+  html body .stage-body { height: min(calc((100vw - 2 * var(--gutter)) * 9 / 16), calc(100svh - var(--head-h) - var(--ctl-h) - 2 * var(--gutter))); flex: none; }
   html body .panel .pbody { width: auto; }
+  html body .stage.is-full .stage-body { height: auto; flex: 1; }
   html body .controls { gap: 6px; padding: 0 6px; }
   html body .rate { display: none; }
   html body .tl-name { width: 0; padding: 0; border: 0; overflow: hidden; }
@@ -388,6 +514,21 @@ button.term.now .at { color: var(--accent); }
   html body .terms { grid-template-columns: minmax(0, 1fr); }
   html body .timeline .ruler { min-height: 0; }
   html body .timeline { min-height: 140px; }
+  html body .app.pages { height: 100dvh; min-height: 0; grid-template-rows: auto minmax(0, 1fr) 0 0; }
+  html body .app.pages .stage-body { height: auto; flex: 1; }
+  html body .app.pages .page { padding: 24px 16px 32px; }
+  html body .principle { grid-template-columns: minmax(0, 1fr); }
+  html body .page .move { grid-template-columns: 1.8em minmax(0, 1fr); row-gap: 14px; }
+  html body .shot img { max-height: none; }
+  html body .guide .pair { grid-auto-flow: row; }
+}
+
+/* ---------- Телефон: лентата за превъртане минава на свой ред над бутоните ---------- */
+@media (max-width: 600px) {
+  html body .controls { flex-wrap: wrap; height: auto; row-gap: 0; padding: 2px 6px 4px; }
+  html body .scrub { order: -1; flex: 1 0 100%; }
+  html body .controls .time { margin-right: auto; }
+  html body .tab { padding: 8px 12px; }
 }
 
 /* ---------- Движение: обратна връзка, скок, пристигане на стъпка ---------- */
@@ -434,7 +575,7 @@ button.term.now .at { color: var(--accent); }
   .cue-in, .panel-in .pbody > * { animation: none; }
   /* без плъзгане, кръг и хлътване; цветовете и състоянията остават */
   .seeking .playhead, .seeking .scrub .fill { transition: none; }
-  .tab:active, .ctl-btn:active, .rate:active, button.term:active, .step:active { transform: none; }
+  .tab:active, .ctl-btn:active, .rate:active, button.term:active, .step:active, .page .next:active { transform: none; }
   .has-ctx .markers .band.current, .mark.ping span, .keylist li.now kbd { animation: none; }
   .term .at .gem { transition: none; }
   .mark.ping .gem::after { display: none; }

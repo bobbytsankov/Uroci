@@ -51,6 +51,8 @@
     back: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 5L4 11l7 6M18 5l-7 6 7 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     fwd: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 5l7 6-7 6M4 5l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     panel: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2.5" y="3.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 4v14" stroke="currentColor" stroke-width="1.8"/></svg>',
+    full: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 8V3h5M14 3h5v5M19 14v5h-5M8 19H3v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    unfull: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M8 3v5H3M19 8h-5V3M14 19v-5h5M3 14h5v5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     done: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--ok)"/><path d="M5.5 10.5l3 3 6-7" stroke="var(--on-ok)" stroke-width="2" fill="none"/></svg>',
     now: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3l12 7-12 7z" fill="currentColor"/></svg>',
     todo: '<svg class="dot" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
@@ -151,12 +153,35 @@
     el('div', { class: 'track' }), fill, ...steps.map((s) => el('i', { class: 'tick', style: `left:${(s.t / D) * 100}%` })));
   const rateBtn = el('button', { class: 'rate', title: 'Скорост', onclick: cycleRate }, '1×');
   const panelBtn = el('button', { class: 'ctl-btn', 'aria-label': 'Панел с обяснение', title: 'Панел с обяснение (P)', 'aria-pressed': 'false', html: icon.panel, onclick: togglePin });
+  // Цял екран: регионът „Видео“ (кадърът с бележките и контролите). Ако браузърът откаже (урок в рамка),
+  // регионът покрива целия прозорец; на iPhone, където елемент не може на цял екран, отива самото видео.
+  const setFull = (on) => {
+    stage.classList.toggle('is-full', on);
+    fsBtn.setAttribute('aria-pressed', String(on));
+    fsBtn.setAttribute('aria-label', on ? 'Изход от цял екран' : 'Цял екран');
+    fsBtn.title = on ? 'Изход от цял екран (F, Esc)' : 'Цял екран (F)';
+    fsBtn.innerHTML = on ? icon.unfull : icon.full;
+    render(true);
+  };
+  const toggleFs = () => {
+    if (stage.classList.contains('is-full')) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => setFull(false));
+      else setFull(false);
+    } else if (document.fullscreenEnabled && stage.requestFullscreen) stage.requestFullscreen().catch(() => setFull(true));
+    else if (video?.webkitEnterFullscreen) video.webkitEnterFullscreen();
+    else setFull(true);
+  };
+  const fsBtn = el('button', { class: 'ctl-btn', 'aria-label': 'Цял екран', title: 'Цял екран (F)', 'aria-pressed': 'false', html: icon.full, onclick: toggleFs });
   const controls = el('div', { class: 'controls' },
     el('button', { class: 'ctl-btn', 'aria-label': 'Предишна стъпка', title: 'Предишна стъпка (↑)', html: icon.back, onclick: () => jumpStep(-1) }),
     playBtn,
     el('button', { class: 'ctl-btn', 'aria-label': 'Следваща стъпка', title: 'Следваща стъпка (↓)', html: icon.fwd, onclick: () => jumpStep(1) }),
-    timeEl, scrub, rateBtn, panelBtn);
+    timeEl, scrub, rateBtn, panelBtn, fsBtn);
   stage.append(controls);
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement === stage) setFull(true);
+    else if (!document.fullscreenElement && stage.classList.contains('is-full')) setFull(false);
+  });
 
   const pTitle = el('b');
   const pBody = el('div', { class: 'pbody' });
@@ -627,9 +652,14 @@
     else if (k === 'ArrowUp') { jumpStep(-1); e.preventDefault(); }
     else if (k === 'ArrowDown') { jumpStep(1); e.preventDefault(); }
     else if (e.code === 'KeyP') togglePin();
+    else if (e.code === 'KeyF') toggleFs();
+    else if (k === 'Escape' && stage.classList.contains('is-full') && !document.fullscreenElement) setFull(false);
     else if (/^[1-9]$/.test(k) && chapters[+k - 1]) goChapter(chapters[+k - 1]);
   });
-  addEventListener('resize', () => render(true));
+  // Горната лента: когато главите не се побират, името на курса и задачата се скриват, за да останат видими всички глави
+  const fitTop = () => { top.classList.remove('tight'); if (tabs.scrollWidth > tabs.clientWidth + 1) top.classList.add('tight'); };
+  fitTop(); document.fonts?.ready.then(fitTop);
+  addEventListener('resize', () => { fitTop(); render(true); });
   new ResizeObserver(() => { state.sig = ''; render(false); }).observe(frame);
 
   /* ---------- Разделител: височината на долната лента се влачи ---------- */
